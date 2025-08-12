@@ -87,7 +87,6 @@ export const initialBudget = {
 };
 
 export const initialGoals = [];
-];
 
 export const initialCareerPlanning = {
   currentRole: '',
