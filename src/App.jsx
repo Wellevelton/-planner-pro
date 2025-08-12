@@ -8,8 +8,7 @@ import {
   initialTravels, 
   initialCareerPlanning, 
   initialCalendarEvents,
-  planilhaFinanceira,
-  viagensData
+  planilhaFinanceira
 } from './data/initialData';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
@@ -64,7 +63,7 @@ const App = () => {
   const [travels, setTravels] = useStoredState('travels', initialTravels);
   const [careerPlanning, setCareerPlanning] = useStoredState('careerPlanning', initialCareerPlanning);
   const [calendarEvents, setCalendarEvents] = useStoredState('calendarEvents', initialCalendarEvents);
-  const [viagensDataState, setViagensDataState] = useStoredState('viagensData', viagensData);
+  const [viagensDataState, setViagensDataState] = useStoredState('viagensData', initialTravels);
   const [planilhaFinanceiraState, setPlanilhaFinanceiraState] = useStoredState('planilhaFinanceira', planilhaFinanceira);
 
   // Função para limpar localStorage e carregar dados iniciais
