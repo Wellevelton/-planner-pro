@@ -1,5 +1,5 @@
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://backend-9rwjcunr2-sobreiras-projects.vercel.app/api'
+  ? 'https://planner-gwt6msj20-sobreiras-projects.vercel.app/api'
   : 'http://localhost:3000/api';
 
 // Função para obter token do localStorage

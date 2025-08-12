@@ -17,7 +17,7 @@
      - `https://planner-gwt6msj20-sobreiras-projects.vercel.app`
      - `http://localhost:5173` (desenvolvimento)
    - **Authorized redirect URIs:**
-     - `https://backend-9rwjcunr2-sobreiras-projects.vercel.app/api/auth/google/callback`
+     - `https://planner-gwt6msj20-sobreiras-projects.vercel.app/api/auth/google/callback`
      - `http://localhost:3000/api/auth/google/callback` (desenvolvimento)
 
 ## 3. Copiar Credenciais
@@ -32,4 +32,4 @@ GOOGLE_CLIENT_SECRET="seu-client-secret-aqui"
 ## 4. URLs de Redirecionamento
 
 - **Frontend:** `https://planner-gwt6msj20-sobreiras-projects.vercel.app`
-- **Backend:** `https://backend-9rwjcunr2-sobreiras-projects.vercel.app`
+- **Backend:** `https://planner-gwt6msj20-sobreiras-projects.vercel.app`

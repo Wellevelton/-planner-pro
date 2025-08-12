@@ -15,7 +15,7 @@
   "env": {
     "DATABASE_URL": "postgresql://neondb_owner:npg_5uekh4YcyIJn@ep-rapid-union-acjddj9i-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require",
     "JWT_SECRET": "planner-pro-super-secret-jwt-key-2024",
-    "CORS_ORIGIN": "https://planner-pro-wellevelton.vercel.app",
+    "CORS_ORIGIN": "https://planner-gwt6msj20-sobreiras-projects.vercel.app",
     "NODE_ENV": "production"
   }
 }
