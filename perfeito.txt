@@ -1,0 +1,2271 @@
+perfeito 
+import React, { useState, useEffect } from 'react';
+import { Plus, Filter, Calendar, DollarSign, MapPin, Settings, Import, MoreVertical, User, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Book, Award, Briefcase, ChevronRight, ChevronLeft, Save, Edit, X, Check, Plane, Hotel, Camera, Star, Globe, Zap, Users, Building } from 'lucide-react';
+
+const { useStoredState } = hatch;
+
+const PlannerPro = () => {
+  // Estado principal
+  const [activeTab, setActiveTab] = useState('projects');
+  const [activeSubTab, setActiveSubTab] = useState('calendar');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [editingCareer, setEditingCareer] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  // Dados iniciais
+  const initialProjects = [
+    {
+      id: 1,
+      title: 'Configurar Ambiente React TypeScript',
+      description: 'Instalar e configurar projeto React com TypeScript e TailwindCSS',
+      status: 'todo',
+      priority: 'high',
+      category: 'Estudos',
+      tags: ['TypeScript', 'React', 'Setup'],
+      assignees: ['U'],
+      dueDate: '2025-08-15',
+      progress: 0,
+      estimatedHours: 8,
+      actualHours: 0
+    },
+    {
+      id: 2,
+      title: 'Implementar Sistema de Autenticação',
+      description: 'Desenvolver login/registro com JWT e validação',
+      status: 'progress',
+      priority: 'high',
+      category: 'Estudos',
+      tags: ['Authentication', 'JWT', 'Security'],
+      assignees: ['U'],
+      dueDate: '2025-08-20',
+      progress: 60,
+      estimatedHours: 12,
+      actualHours: 7
+    },
+    {
+      id: 3,
+      title: 'Reservas de Hotel Paris',
+      description: 'Pesquisar e reservar hotéis na região central de Paris',
+      status: 'done',
+      priority: 'medium',
+      category: 'Viagens',
+      tags: ['Paris', 'Hospedagem', 'Booking'],
+      assignees: ['U'],
+      dueDate: '2025-08-25',
+      progress: 100,
+      estimatedCost: 800
+    }
+  ];
+
+  const initialFinances = [
+    { id: 1, description: 'Salário Desenvolvedor', amount: 8000.00, category: 'Renda', date: '2025-08-05', type: 'income' },
+    { id: 2, description: 'Freelance Website', amount: 1500.00, category: 'Renda Extra', date: '2025-08-03', type: 'income' },
+    { id: 3, description: 'Curso React Avançado', amount: -299.90, category: 'Educação', date: '2025-08-05', type: 'expense' },
+    { id: 4, description: 'Reserva Hotel Paris', amount: -450.00, category: 'Viagem', date: '2025-08-01', type: 'expense' },
+    { id: 5, description: 'Aluguel Apartamento', amount: -1200.00, category: 'Moradia', date: '2025-08-01', type: 'expense' },
+    { id: 6, description: 'Supermercado', amount: -350.00, category: 'Alimentação', date: '2025-08-03', type: 'expense' }
+  ];
+
+  const initialBudget = {
+    monthly: {
+      planned: 9500,
+      actual: 9250,
+      target: 10000,
+      categories: {
+        'Educação': { planned: 500, actual: 299.90, target: 600 },
+        'Viagem': { planned: 2000, actual: 450.00, target: 2500 },
+        'Moradia': { planned: 1200, actual: 1200.00, target: 1200 },
+        'Alimentação': { planned: 800, actual: 350.00, target: 700 },
+        'Transporte': { planned: 400, actual: 280.00, target: 350 },
+        'Lazer': { planned: 300, actual: 150.00, target: 400 },
+        'Emergência': { planned: 500, actual: 0.00, target: 500 }
+      }
+    }
+  };
+
+  const initialGoals = [
+    {
+      id: 1,
+      title: 'Estudar React 2h por dia',
+      category: 'Estudos',
+      target: 60,
+      current: 18,
+      unit: 'horas',
+      deadline: '2025-08-31',
+      streak: 7,
+      maxStreak: 12,
+      type: 'habit',
+      frequency: 'daily',
+      dailyTarget: 2
+    },
+    {
+      id: 2,
+      title: 'Economizar para Europa',
+      category: 'Finanças',
+      target: 15000,
+      current: 8500,
+      unit: 'R$',
+      deadline: '2025-12-31',
+      streak: 15,
+      maxStreak: 20,
+      type: 'target',
+      frequency: 'monthly',
+      monthlyTarget: 1500
+    },
+    {
+      id: 3,
+      title: 'Completar 5 Projetos',
+      category: 'Carreira',
+      target: 5,
+      current: 2,
+      unit: 'projetos',
+      deadline: '2025-10-31',
+      streak: 3,
+      maxStreak: 5,
+      type: 'target',
+      frequency: 'weekly',
+      weeklyTarget: 1
+    },
+    {
+      id: 4,
+      title: 'Exercitar-se 30min/dia',
+      category: 'Saúde',
+      target: 30,
+      current: 12,
+      unit: 'dias',
+      deadline: '2025-08-31',
+      streak: 4,
+      maxStreak: 8,
+      type: 'habit',
+      frequency: 'daily',
+      dailyTarget: 1
+    }
+  ];
+
+  const initialCareerPlanning = {
+    currentRole: 'Desenvolvedor Frontend Jr',
+    targetRole: 'Tech Lead',
+    currentSalary: 8000,
+    targetSalary: 15000,
+    timeline: '18 meses',
+    skills: [
+      { name: 'React/Next.js', current: 7, target: 9, category: 'Frontend', priority: 'high' },
+      { name: 'TypeScript', current: 6, target: 9, category: 'Frontend', priority: 'high' },
+      { name: 'Node.js/Express', current: 5, target: 8, category: 'Backend', priority: 'medium' },
+      { name: 'AWS/Cloud', current: 3, target: 8, category: 'DevOps', priority: 'high' },
+      { name: 'Liderança', current: 4, target: 9, category: 'Soft Skills', priority: 'high' },
+      { name: 'Arquitetura', current: 4, target: 8, category: 'Técnicas', priority: 'medium' }
+    ],
+    certifications: [
+      { name: 'AWS Solutions Architect', status: 'planned', deadline: '2025-11-30', cost: 300 },
+      { name: 'Scrum Master', status: 'in_progress', deadline: '2025-09-15', cost: 800 }
+    ],
+    courses: [
+      { name: 'React Avançado', status: 'completed', cost: 299.90, rating: 9 },
+      { name: 'TypeScript Masterclass', status: 'in_progress', cost: 199, rating: null },
+      { name: 'AWS Fundamentals', status: 'planned', cost: 150, rating: null }
+    ],
+    milestones: [
+      { milestone: 'Certificação Scrum', date: '2025-09-15', status: 'in_progress' },
+      { milestone: 'Projeto Full-Stack', date: '2025-10-30', status: 'planned' },
+      { milestone: 'AWS Certification', date: '2025-11-30', status: 'planned' },
+      { milestone: 'Promoção para Pleno', date: '2025-12-15', status: 'planned' },
+      { milestone: 'Tech Lead Role', date: '2026-02-01', status: 'planned' }
+    ]
+  };
+
+  const initialCalendarEvents = [
+    {
+      id: 1,
+      title: 'Estudar React',
+      description: 'Revisar hooks e context',
+      date: '2025-08-10',
+      startTime: '09:00',
+      endTime: '11:00',
+      category: 'Estudos',
+      type: 'study'
+    },
+    {
+      id: 2,
+      title: 'Reunião de Projeto',
+      description: 'Alinhamento sobre novas funcionalidades',
+      date: '2025-08-10',
+      startTime: '14:00',
+      endTime: '15:30',
+      category: 'Trabalho',
+      type: 'meeting'
+    }
+  ];
+
+  const initialTravels = [
+    { 
+      id: 1, 
+      destination: 'Paris, França', 
+      startDate: '2025-09-15', 
+      endDate: '2025-09-20', 
+      status: 'planned', 
+      budget: 2500,
+      actualCost: 450,
+      activities: ['Torre Eiffel', 'Louvre', 'Arco do Triunfo'],
+      accommodation: 'Hotel Central Paris',
+      transportation: 'Voo + Metrô',
+      photos: 0,
+      rating: 0,
+      weather: 'Ensolarado, 22°C',
+      currency: 'EUR',
+      documents: ['Passaporte', 'Seguro Viagem']
+    },
+    { 
+      id: 2, 
+      destination: 'Barcelona, Espanha', 
+      startDate: '2025-09-21', 
+      endDate: '2025-09-25', 
+      status: 'researching', 
+      budget: 1800,
+      actualCost: 0,
+      activities: ['Sagrada Familia', 'Park Güell', 'Las Ramblas'],
+      accommodation: 'A definir',
+      transportation: 'A definir',
+      photos: 0,
+      rating: 0,
+      weather: 'Parcialmente nublado, 25°C',
+      currency: 'EUR',
+      documents: ['Em análise']
+    },
+    { 
+      id: 3, 
+      destination: 'Roma, Itália', 
+      startDate: '2025-10-10', 
+      endDate: '2025-10-15', 
+      status: 'wishlist', 
+      budget: 2200,
+      actualCost: 0,
+      activities: ['Coliseu', 'Vaticano', 'Fontana di Trevi'],
+      accommodation: 'A pesquisar',
+      transportation: 'A pesquisar',
+      photos: 0,
+      rating: 0,
+      weather: 'Previsão: Ameno, 18°C',
+      currency: 'EUR',
+      documents: ['Passaporte necessário']
+    }
+  ];
+
+  // Estados com useStoredState
+  const [projects, setProjects] = useStoredState('projects', initialProjects);
+  const [finances, setFinances] = useStoredState('finances', initialFinances);
+  const [budget, setBudget] = useStoredState('budget', initialBudget);
+  const [goals, setGoals] = useStoredState('goals', initialGoals);
+  const [travels, setTravels] = useStoredState('travels', initialTravels);
+  const [careerPlanning, setCareerPlanning] = useStoredState('careerPlanning', initialCareerPlanning);
+  const [calendarEvents, setCalendarEvents] = useStoredState('calendarEvents', initialCalendarEvents);
+
+  // Estados para viagens
+  const [currentTravelPage, setCurrentTravelPage] = useState(1);
+  const [selectedTravel, setSelectedTravel] = useState(null);
+  const [showTravelModal, setShowTravelModal] = useState(false);
+
+  // Dados das planilhas importadas
+  const planilhaFinanceira = [
+    { mes: '2026-01', rendaDev: 3500, rendaContab: 2500, freelas: 500, rendaTotal: 6500, gastos: 2500, aporte: 4000, saldoAcum: 4000 },
+    { mes: '2026-02', rendaDev: 3500, rendaContab: 2500, freelas: 500, rendaTotal: 6500, gastos: 2512.5, aporte: 3987.5, saldoAcum: 8023.5 },
+    { mes: '2026-03', rendaDev: 3500, rendaContab: 2500, freelas: 500, rendaTotal: 6500, gastos: 2525.0625, aporte: 3974.9375, saldoAcum: 12070.65 },
+    { mes: '2026-06', rendaDev: 4200, rendaContab: 2500, freelas: 1000, rendaTotal: 7700, gastos: 2563.128133, aporte: 5136.871867, saldoAcum: 25555.5 },
+    { mes: '2027-01', rendaDev: 5500, rendaContab: 2500, freelas: 1500, rendaTotal: 9500, gastos: 2654.19453, aporte: 6845.80547, saldoAcum: 66895.96 },
+    { mes: '2027-06', rendaDev: 6500, rendaContab: 2500, freelas: 2000, rendaTotal: 11000, gastos: 2721.216268, aporte: 8278.783732, saldoAcum: 106108.87 },
+    { mes: '2027-12', rendaDev: 8000, rendaContab: 0, freelas: 2500, rendaTotal: 10500, gastos: 2803.88004, aporte: 7696.11996, saldoAcum: 151707.34 },
+    { mes: '2028-06', rendaDev: 10000, rendaContab: 0, freelas: 3000, rendaTotal: 13000, gastos: 2889.054933, aporte: 10110.94507, saldoAcum: 212081.09 }
+  ];
+
+  // Dados completos da planilha de viagens
+  const viagensData = [
+    { id: 1, semana: '2028-08-08', inicio: '2028-08-08 00:00:00', fim: '2028-08-14 00:00:00', cidade: 'Hamburgo Alemanha', pais: 'Schengen', zona: 'Schengen', hospedagem: 1000, tentacao: 380, importe: 160, bagemia: 90, bimentos: 120, cidades: 120, distotal: 1870, longdist: 2244, rating: 8.1, notes: 62 },
+    { id: 2, semana: '2028-08-15', inicio: '2028-08-15 00:00:00', fim: '2028-08-21 00:00:00', cidade: 'Viena Austria', pais: 'Schengen', zona: 'Schengen', hospedagem: 800, tentacao: 350, importe: 140, bagemia: 80, bimentos: 120, cidades: 100, distotal: 1590, longdist: 1998, rating: 8.1, notes: 62 },
+    { id: 3, semana: '2028-08-22', inicio: '2028-08-22 00:00:00', fim: '2028-08-28 00:00:00', cidade: 'Cracóvia Polônia', pais: 'Schengen', zona: 'Schengen', hospedagem: 600, tentacao: 350, importe: 140, bagemia: 80, bimentos: 120, cidades: 120, distotal: 1410, longdist: 1932, rating: 8.1, notes: 62 },
+    { id: 4, semana: '2028-08-29', inicio: '2028-08-29 00:00:00', fim: '2028-09-04 00:00:00', cidade: 'Marselha França', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 900, tentacao: 380, importe: 150, bagemia: 90, bimentos: 150, cidades: 150, distotal: 1820, longdist: 2184, rating: 8.1, notes: 62 },
+    { id: 5, semana: '2028-09-05', inicio: '2028-09-05 00:00:00', fim: '2028-09-11 00:00:00', cidade: 'Milão Itália', pais: 'Schengen', zona: 'Schengen', hospedagem: 950, tentacao: 400, importe: 180, bagemia: 100, bimentos: 150, cidades: 150, distotal: 1930, longdist: 2639, rating: 8.1, notes: 62 },
+    { id: 6, semana: '2028-09-12', inicio: '2028-09-12 00:00:00', fim: '2028-09-18 00:00:00', cidade: 'Copenhague Dinamarca', pais: 'Schengen', zona: 'Schengen', hospedagem: 1200, tentacao: 420, importe: 180, bagemia: 100, bimentos: 150, cidades: 150, distotal: 2200, longdist: 2860, rating: 8.1, notes: 62 },
+    { id: 7, semana: '2028-09-19', inicio: '2028-09-19 00:00:00', fim: '2028-09-25 00:00:00', cidade: 'Alta Suécia', pais: 'Schengen', zona: 'Schengen', hospedagem: 1100, tentacao: 400, importe: 160, bagemia: 100, bimentos: 150, cidades: 120, distotal: 2030, longdist: 2639, rating: 8.1, notes: 62 },
+    { id: 8, semana: '2028-09-26', inicio: '2028-09-26 00:00:00', fim: '2028-10-02 00:00:00', cidade: 'Gotemburgo Suécia', pais: 'Schengen', zona: 'Schengen', hospedagem: 1100, tentacao: 400, importe: 160, bagemia: 100, bimentos: 150, cidades: 120, distotal: 2030, longdist: 2639, rating: 8.1, notes: 62 },
+    { id: 9, semana: '2028-10-03', inicio: '2028-10-03 00:00:00', fim: '2028-10-09 00:00:00', cidade: 'Helsinque Finlândia', pais: 'Schengen', zona: 'Schengen', hospedagem: 1200, tentacao: 420, importe: 220, bagemia: 110, bimentos: 150, cidades: 200, distotal: 2300, longdist: 3373, rating: 8.1, notes: 62 },
+    { id: 10, semana: '2028-10-10', inicio: '2028-10-10 00:00:00', fim: '2028-10-16 00:00:00', cidade: 'Oslo Noruega', pais: 'Schengen', zona: 'Schengen', hospedagem: 1200, tentacao: 420, importe: 180, bagemia: 110, bimentos: 150, cidades: 150, distotal: 2210, longdist: 2873, rating: 8.1, notes: 62 },
+    { id: 11, semana: '2028-10-17', inicio: '2028-10-17 00:00:00', fim: '2028-10-23 00:00:00', cidade: 'Veneza Itália', pais: 'Schengen', zona: 'Schengen', hospedagem: 1400, tentacao: 430, importe: 220, bagemia: 110, bimentos: 150, cidades: 200, distotal: 2510, longdist: 3393, rating: 8.1, notes: 0 },
+    { id: 12, semana: '2028-10-24', inicio: '2028-10-24 00:00:00', fim: '2028-10-30 00:00:00', cidade: 'Dubai EAU', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1100, tentacao: 420, importe: 180, bagemia: 120, bimentos: 150, cidades: 180, distotal: 2150, longdist: 2688, rating: 8.1, notes: 62 },
+    { id: 13, semana: '2028-10-31', inicio: '2028-10-31 00:00:00', fim: '2028-11-06 00:00:00', cidade: 'Helsinque Finlândia', pais: 'Schengen', zona: 'Schengen', hospedagem: 900, tentacao: 350, importe: 150, bagemia: 80, bimentos: 120, cidades: 150, distotal: 1750, longdist: 2020, rating: 8.1, notes: 62 },
+    { id: 14, semana: '2028-11-07', inicio: '2028-11-07 00:00:00', fim: '2028-11-13 00:00:00', cidade: 'Tempere Finlândia', pais: 'Schengen', zona: 'Schengen', hospedagem: 900, tentacao: 350, importe: 150, bagemia: 80, bimentos: 120, cidades: 150, distotal: 1750, longdist: 2100, rating: 8.1, notes: 600 },
+    { id: 15, semana: '2028-11-14', inicio: '2028-11-14 00:00:00', fim: '2028-11-20 00:00:00', cidade: 'Koh Tao Tailândia', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1200, tentacao: 350, importe: 160, bagemia: 60, bimentos: 120, cidades: 400, distotal: 2290, longdist: 2748, rating: 8.1, notes: 62 },
+    { id: 16, semana: '2028-11-21', inicio: '2028-11-21 00:00:00', fim: '2028-11-27 00:00:00', cidade: 'Koh Samui Tailândia', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 900, tentacao: 330, importe: 140, bagemia: 80, bimentos: 120, cidades: 150, distotal: 1720, longdist: 2064, rating: 8.1, notes: 62 },
+    { id: 17, semana: '2028-11-28', inicio: '2028-11-28 00:00:00', fim: '2028-12-04 00:00:00', cidade: 'Singapura Singapura', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1400, tentacao: 450, importe: 200, bagemia: 120, bimentos: 150, cidades: 180, distotal: 2500, longdist: 3125, rating: 8.1, notes: 62 },
+    { id: 18, semana: '2028-12-05', inicio: '2028-12-05 00:00:00', fim: '2028-12-11 00:00:00', cidade: 'Sharjah EAU', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1600, tentacao: 500, importe: 250, bagemia: 120, bimentos: 150, cidades: 300, distotal: 2920, longdist: 3650, rating: 8.1, notes: 700 },
+    { id: 19, semana: '2029-01-16', inicio: '2029-01-22 00:00:00', fim: '2029-01-29 00:00:00', cidade: 'Zhangjiajie China', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1150, tentacao: 402, importe: 267, bagemia: 115, bimentos: 138, cidades: 288, distotal: 2360, longdist: 7760, rating: 8.1, notes: 62 },
+    { id: 20, semana: '2029-01-30', inicio: '2029-02-05 00:00:00', fim: '2029-02-12 00:00:00', cidade: 'Yangon + China', pais: 'Fora Schengen', zona: 'Fora Schengen', hospedagem: 1265, tentacao: 402, importe: 230, bagemia: 115, bimentos: 138, cidades: 288, distotal: 2438, longdist: 2926, rating: 8.1, notes: 800 }
+  ];
+
+  // Funções auxiliares
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  // Drag and Drop handlers
+  const handleDragStart = (e, item) => {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, newStatus) => {
+    e.preventDefault();
+    if (draggedItem) {
+      const updatedProjects = projects.map(project =>
+        project.id === draggedItem.id
+          ? { ...project, status: newStatus }
+          : project
+      );
+      setProjects(updatedProjects);
+      setDraggedItem(null);
+    }
+  };
+
+  // Calendar functions
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+
+  const getEventsForDate = (date) => {
+    if (!date) return [];
+    const dateString = date.toISOString().split('T')[0];
+    return calendarEvents.filter(event => event.date === dateString);
+  };
+
+  const addEvent = (eventData) => {
+    if (!selectedDate) {
+      console.error('Nenhuma data selecionada');
+      alert('Erro: Por favor, selecione uma data primeiro.');
+      setShowEventModal(false);
+      return;
+    }
+    
+    const newEvent = {
+      id: Date.now(),
+      ...eventData,
+      date: selectedDate.toISOString().split('T')[0],
+      type: 'custom'
+    };
+    setCalendarEvents([...calendarEvents, newEvent]);
+    setShowEventModal(false);
+    setSelectedDate(null);
+  };
+
+  // Finance functions
+  const getTotalIncome = () => {
+    return finances
+      .filter(item => item.type === 'income')
+      .reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  const getTotalExpenses = () => {
+    return Math.abs(finances
+      .filter(item => item.type === 'expense')
+      .reduce((sum, item) => sum + item.amount, 0));
+  };
+
+  const getBalance = () => {
+    return getTotalIncome() - getTotalExpenses();
+  };
+
+  // Goal functions
+  const updateGoalProgress = (goalId, newProgress) => {
+    const updatedGoals = goals.map(goal =>
+      goal.id === goalId ? { ...goal, current: newProgress } : goal
+    );
+    setGoals(updatedGoals);
+  };
+
+  // Render functions
+  const renderProjects = () => {
+    const columns = {
+      todo: projects.filter(p => p.status === 'todo'),
+      progress: projects.filter(p => p.status === 'progress'),
+      done: projects.filter(p => p.status === 'done')
+    };
+
+    const columnTitles = {
+      todo: 'A Fazer',
+      progress: 'Em Progresso', 
+      done: 'Concluído'
+    };
+
+    const columnIcons = {
+      todo: '📋',
+      progress: '⚡',
+      done: '✅'
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Header com botão Novo Projeto */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">Projetos</h2>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus size={16} />
+            Novo Projeto
+          </button>
+        </div>
+
+        {/* Layout Trello com colunas ocupando todo o espaço */}
+        <div className="grid grid-cols-3 gap-6 h-[600px]">
+          {Object.entries(columns).map(([status, items]) => (
+            <div 
+              key={status}
+              className="bg-gray-800 rounded-lg p-4 flex flex-col"
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, status)}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-xl">{columnIcons[status]}</span>
+                <h3 className="font-semibold text-white text-lg">{columnTitles[status]}</h3>
+                <span className="bg-gray-700 text-xs px-2 py-1 rounded-full text-gray-300 ml-auto">
+                  {items.length}
+                </span>
+              </div>
+              
+              {/* Scroll apenas nas colunas individuais */}
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                {items.map((project) => (
+                  <div
+                    key={project.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, project)}
+                    className="bg-gray-700 p-4 rounded-lg cursor-move hover:bg-gray-600 transition-all shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-medium text-white text-sm leading-5">
+                        {project.title}
+                      </h4>
+                      <button className="text-gray-400 hover:text-white transition-colors">
+                        <MoreVertical size={16} />
+                      </button>
+                    </div>
+                    
+                    <p className="text-gray-300 text-xs mb-3 line-clamp-2">
+                      {project.description}
+                    </p>
+                    
+                    {project.progress > 0 && (
+                      <div className="mb-3">
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-gray-400">Progresso</span>
+                          <span className="text-gray-300">{project.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-600 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full transition-all"
+                            style={{ width: `${project.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className={`px-2 py-1 rounded-full font-medium ${
+                        project.priority === 'high' ? 'bg-red-500 bg-opacity-20 text-red-300 border border-red-500 border-opacity-30' :
+                        project.priority === 'medium' ? 'bg-yellow-500 bg-opacity-20 text-yellow-300 border border-yellow-500 border-opacity-30' :
+                        'bg-green-500 bg-opacity-20 text-green-300 border border-green-500 border-opacity-30'
+                      }`}>
+                        {project.priority}
+                      </span>
+                      
+                      <span className="text-gray-400">
+                        {formatDate(project.dueDate)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {project.tags?.slice(0, 2).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="bg-gray-600 text-gray-300 px-2 py-1 rounded text-xs"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {project.tags?.length > 2 && (
+                        <span className="text-gray-400 text-xs px-1">
+                          +{project.tags.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                {items.length === 0 && (
+                  <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-600 rounded-lg">
+                    <p className="text-sm">Arraste um projeto aqui</p>
+                    <p className="text-xs text-gray-600 mt-1">ou clique para adicionar</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCalendar = () => {
+    const days = getDaysInMonth(currentDate);
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+    return (
+      <div className="bg-gray-800 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-white">
+            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </h2>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
+              className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button 
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+              className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {dayNames.map(day => (
+            <div key={day} className="p-2 text-center text-gray-400 text-sm font-medium">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((day, index) => {
+            const events = getEventsForDate(day);
+            const isToday = day && day.toDateString() === new Date().toDateString();
+            
+            return (
+              <div
+                key={index}
+                className={`p-2 min-h-[80px] border border-gray-700 rounded cursor-pointer transition-colors ${
+                  day ? 'hover:bg-gray-700' : ''
+                } ${isToday ? 'bg-blue-900 border-blue-600' : 'bg-gray-800'}`}
+                onClick={() => {
+                  if (day) {
+                    setSelectedDate(day);
+                    setShowEventModal(true);
+                  }
+                }}
+              >
+                {day && (
+                  <>
+                    <div className="text-white text-sm font-medium mb-1">
+                      {day.getDate()}
+                    </div>
+                    <div className="space-y-1">
+                      {events.slice(0, 2).map((event) => (
+                        <div
+                          key={event.id}
+                          className="bg-blue-600 text-white text-xs p-1 rounded truncate"
+                        >
+                          {event.startTime} {event.title}
+                        </div>
+                      ))}
+                      {events.length > 2 && (
+                        <div className="text-gray-400 text-xs">
+                          +{events.length - 2} mais
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderGoals = () => (
+    <div className="space-y-6">
+      {/* Header com botão Nova Meta */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Metas & Objetivos</h2>
+        <div className="flex gap-2">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <Plus size={16} />
+            Nova Meta
+          </button>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <Import size={16} />
+            Importar
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {goals.map((goal) => {
+          const progressPercentage = (goal.current / goal.target) * 100;
+          const isCompleted = goal.current >= goal.target;
+          
+          return (
+            <div key={goal.id} className="bg-gray-800 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="font-semibold text-white text-sm mb-1">{goal.title}</h3>
+                  <span className="text-gray-400 text-xs">{goal.category}</span>
+                </div>
+                {isCompleted ? (
+                  <CheckCircle className="text-green-500" size={20} />
+                ) : (
+                  <Target className="text-blue-500" size={20} />
+                )}
+              </div>
+              
+              <div className="mb-3">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-300">
+                    {goal.current} / {goal.target} {goal.unit}
+                  </span>
+                  <span className="text-gray-400">
+                    {progressPercentage.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}
+                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-1">
+                  <Clock className="text-orange-500" size={14} />
+                  <span className="text-gray-400">Streak: {goal.streak}</span>
+                </div>
+                <span className="text-gray-400">
+                  {formatDate(goal.deadline)}
+                </span>
+              </div>
+              
+              <div className="mt-2 flex gap-1">
+                <button 
+                  onClick={() => updateGoalProgress(goal.id, Math.min(goal.current + 1, goal.target))}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                >
+                  +1
+                </button>
+                <button 
+                  onClick={() => updateGoalProgress(goal.id, Math.max(goal.current - 1, 0))}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
+                >
+                  -1
+                </button>
+                <button className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs">
+                  <Edit size={12} />
+                </button>
+                <button className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderFinances = () => {
+    const totalIncome = getTotalIncome();
+    const totalExpenses = getTotalExpenses();
+    const balance = getBalance();
+    
+    return (
+      <div className="space-y-6">
+        {/* Header com botões de ação */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">Transações Financeiras</h2>
+          <div className="flex gap-2">
+            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Plus size={16} />
+              Nova Transação
+            </button>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Import size={16} />
+              Importar
+            </button>
+            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Save size={16} />
+              Exportar
+            </button>
+          </div>
+        </div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-xl p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Receitas</p>
+                <p className="text-white text-2xl font-bold">
+                  {formatCurrency(totalIncome)}
+                </p>
+                <p className="text-green-200 text-xs mt-1">↗ +12% este mês</p>
+              </div>
+              <div className="bg-green-500 bg-opacity-30 p-3 rounded-lg">
+                <TrendingUp className="text-green-100" size={24} />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-600 to-red-800 rounded-xl p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-100 text-sm font-medium">Despesas</p>
+                <p className="text-white text-2xl font-bold">
+                  {formatCurrency(totalExpenses)}
+                </p>
+                <p className="text-red-200 text-xs mt-1">↘ -8% este mês</p>
+              </div>
+              <div className="bg-red-500 bg-opacity-30 p-3 rounded-lg">
+                <DollarSign className="text-red-100" size={24} />
+              </div>
+            </div>
+          </div>
+          
+          <div className={`bg-gradient-to-br ${balance >= 0 ? 'from-blue-600 to-blue-800' : 'from-orange-600 to-orange-800'} rounded-xl p-6 shadow-lg`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`${balance >= 0 ? 'text-blue-100' : 'text-orange-100'} text-sm font-medium`}>Saldo</p>
+                <p className="text-white text-2xl font-bold">
+                  {formatCurrency(balance)}
+                </p>
+                <p className={`${balance >= 0 ? 'text-blue-200' : 'text-orange-200'} text-xs mt-1`}>
+                  {balance >= 0 ? '✅ Saldo positivo' : '⚠ Atenção ao saldo'}
+                </p>
+              </div>
+              <div className={`${balance >= 0 ? 'bg-blue-500' : 'bg-orange-500'} bg-opacity-30 p-3 rounded-lg`}>
+                <AlertCircle className={`${balance >= 0 ? 'text-blue-100' : 'text-orange-100'}`} size={24} />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Transactions List */}
+        <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+          <h3 className="text-white font-semibold mb-4 text-lg">Transações Recentes</h3>
+          <div className="space-y-4">
+            {finances.slice(-10).reverse().map((transaction) => (
+              <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    transaction.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                  }`}>
+                    {transaction.type === 'income' ? '↗' : '↘'}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{transaction.description}</p>
+                    <p className="text-gray-400 text-sm">{transaction.category}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`font-semibold ${transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatCurrency(Math.abs(transaction.amount))}
+                  </p>
+                  <p className="text-gray-400 text-sm">{formatDate(transaction.date)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBudget = () => {
+    const categories = budget.monthly?.categories || {};
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">Orçamento Mensal</h2>
+          <button
+            onClick={() => setEditingBudget(!editingBudget)}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg shadow-lg transition-all"
+          >
+            {editingBudget ? <Save size={20} /> : <Edit size={20} />}
+            {editingBudget ? 'Salvar' : 'Editar'}
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.entries(categories).map(([category, data]) => {
+            const percentage = (data.actual / data.planned) * 100;
+            const isOverBudget = data.actual > data.planned;
+            
+            return (
+              <div key={category} className="bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white font-semibold text-lg">{category}</h3>
+                  {editingBudget && (
+                    <button className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                      <Edit size={16} />
+                    </button>
+                  )}
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Gasto:</span>
+                    <span className={`font-semibold ${isOverBudget ? 'text-red-400' : 'text-white'}`}>
+                      {formatCurrency(data.actual)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Planejado:</span>
+                    <span className="text-gray-300 font-medium">{formatCurrency(data.planned)}</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-700 rounded-full h-3">
+                    <div 
+                      className={`h-3 rounded-full transition-all ${isOverBudget ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-green-500 to-green-600'}`}
+                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">{percentage.toFixed(0)}% usado</span>
+                    <span className={`font-medium ${isOverBudget ? 'text-red-400' : 'text-green-400'}`}>
+                      {formatCurrency(data.planned - data.actual)} restante
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCareer = () => {
+    return (
+      <div className="space-y-8">
+        {/* Career Header */}
+        <div className="bg-gradient-to-r from-purple-800 to-blue-800 rounded-xl p-8 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-white bg-opacity-20 p-4 rounded-xl">
+                <TrendingUp className="text-white" size={32} />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-white">Planejamento de Carreira</h2>
+                <p className="text-purple-200">Sua jornada rumo ao sucesso profissional</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setEditingCareer(!editingCareer)}
+              className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-3 rounded-xl transition-all"
+            >
+              {editingCareer ? <Save size={20} /> : <Edit size={20} />}
+              {editingCareer ? 'Salvar' : 'Editar'}
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white bg-opacity-10 rounded-xl p-6">
+              <h3 className="text-white font-semibold mb-4 text-xl flex items-center gap-2">
+                <Briefcase size={20} />
+                Transição de Carreira
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-purple-200">Cargo Atual:</span>
+                  <span className="text-white font-semibold">{careerPlanning.currentRole}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-purple-200">Cargo Meta:</span>
+                  <span className="text-green-300 font-semibold">{careerPlanning.targetRole}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-purple-200">Salário Atual:</span>
+                  <span className="text-white font-semibold">{formatCurrency(careerPlanning.currentSalary)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-purple-200">Salário Meta:</span>
+                  <span className="text-green-300 font-semibold">{formatCurrency(careerPlanning.targetSalary)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-purple-200">Timeline:</span>
+                  <span className="text-blue-300 font-semibold">{careerPlanning.timeline}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white bg-opacity-10 rounded-xl p-6">
+              <h3 className="text-white font-semibold mb-4 text-xl flex items-center gap-2">
+                <Target size={20} />
+                Próximos Marcos
+              </h3>
+              <div className="space-y-4">
+                {careerPlanning.milestones?.slice(0, 4).map((milestone, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className={`w-4 h-4 rounded-full flex-shrink-0 ${
+                      milestone.status === 'completed' ? 'bg-green-400' :
+                      milestone.status === 'in_progress' ? 'bg-blue-400' : 'bg-gray-400'
+                    }`}></div>
+                    <div className="flex-1">
+                      <span className="text-white font-medium block">{milestone.milestone}</span>
+                      <span className="text-purple-200 text-sm">{formatDate(milestone.date)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Skills Grid */}
+        <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+          <h3 className="text-white font-semibold mb-6 text-2xl flex items-center gap-3">
+            <Zap className="text-yellow-400" size={28} />
+            Desenvolvimento de Skills
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {careerPlanning.skills?.map((skill, index) => (
+              <div key={index} className="bg-gray-700 rounded-xl p-6 hover:bg-gray-600 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-white font-semibold text-lg">{skill.name}</span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    skill.priority === 'high' ? 'bg-red-500 text-red-100' :
+                    skill.priority === 'medium' ? 'bg-yellow-500 text-yellow-100' :
+                    'bg-green-500 text-green-100'
+                  }`}>
+                    {skill.priority}
+                  </span>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Atual: {skill.current}/10</span>
+                    <span className="text-gray-300">Meta: {skill.target}/10</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-600 rounded-full h-4">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-4 rounded-full transition-all"
+                      style={{ width: `${(skill.current / skill.target) * 100}%` }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">{skill.category}</span>
+                    <span className="text-sm text-blue-400 font-medium">
+                      {((skill.current / skill.target) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Certifications and Courses */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+            <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+              <Award className="text-yellow-400" size={24} />
+              Certificações
+            </h3>
+            <div className="space-y-4">
+              {careerPlanning.certifications?.map((cert, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-xl hover:bg-gray-600 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <Award className={`${
+                      cert.status === 'completed' ? 'text-green-400' :
+                      cert.status === 'in_progress' ? 'text-blue-400' : 'text-gray-400'
+                    }`} size={20} />
+                    <div>
+                      <p className="text-white font-medium">{cert.name}</p>
+                      <p className="text-gray-400 text-sm capitalize">{cert.status.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-green-400 font-semibold">{formatCurrency(cert.cost)}</p>
+                    <p className="text-gray-400 text-sm">{formatDate(cert.deadline)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+            <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+              <Book className="text-blue-400" size={24} />
+              Cursos
+            </h3>
+            <div className="space-y-4">
+              {careerPlanning.courses?.map((course, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-xl hover:bg-gray-600 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <Book className={`${
+                      course.status === 'completed' ? 'text-green-400' :
+                      course.status === 'in_progress' ? 'text-blue-400' : 'text-gray-400'
+                    }`} size={20} />
+                    <div>
+                      <p className="text-white font-medium">{course.name}</p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-gray-400 text-sm capitalize">{course.status.replace('_', ' ')}</p>
+                        {course.rating && (
+                          <div className="flex items-center gap-1">
+                            <Star className="text-yellow-400" size={12} fill="currentColor" />
+                            <span className="text-yellow-400 text-sm font-medium">{course.rating}/10</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-green-400 font-semibold">{formatCurrency(course.cost)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTravels = () => {
+    const travelsPerPage = 4;
+    const totalPages = Math.ceil(viagensData.length / travelsPerPage);
+    const startIndex = (currentTravelPage - 1) * travelsPerPage;
+    const currentTravels = viagensData.slice(startIndex, startIndex + travelsPerPage);
+
+    const getStatusColor = (zona) => {
+      return zona === 'Schengen' ? 'from-green-500 to-green-600' : 'from-blue-500 to-blue-600';
+    };
+
+    const getStatusIcon = (zona) => {
+      return zona === 'Schengen' ? '✅' : '🌍';
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-xl">
+              <Globe className="text-white" size={32} />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-white">Viagens Planejadas</h2>
+              <p className="text-gray-400">Explore o mundo com organização</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-400 text-sm">
+              {viagensData.length} destinos • Página {currentTravelPage} de {totalPages}
+            </span>
+            <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition-all">
+              <Plus size={20} />
+              Nova Viagem
+            </button>
+          </div>
+        </div>
+
+        {/* Cards de Viagens - 4 por página */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {currentTravels.map((viagem, index) => (
+            <div 
+              key={viagem.id} 
+              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1 cursor-pointer border border-gray-700"
+              onClick={() => {
+                setSelectedTravel(viagem);
+                setShowTravelModal(true);
+              }}
+            >
+              {/* Header do Card */}
+              <div className={`h-32 bg-gradient-to-br ${getStatusColor(viagem.zona)} relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-4 right-4">
+                  <span className="bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                    {getStatusIcon(viagem.zona)} Confirmada
+                  </span>
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="font-bold text-white text-xl mb-1">{viagem.cidade}</h3>
+                  <div className="flex items-center gap-2 text-white text-sm opacity-90">
+                    <Calendar size={14} />
+                    <span>{new Date(viagem.inicio).toLocaleDateString('pt-BR')} - {new Date(viagem.fim).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Conteúdo do Card */}
+              <div className="p-6 space-y-4">
+                {/* Orçamento e Hospedagem */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-700 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <DollarSign className="text-green-400" size={14} />
+                      <span className="text-gray-400 text-xs">Orçamento</span>
+                    </div>
+                    <span className="text-white font-semibold text-lg">R$ {viagem.distotal.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="bg-gray-700 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Hotel className="text-blue-400" size={14} />
+                      <span className="text-gray-400 text-xs">Hospedagem</span>
+                    </div>
+                    <span className="text-white font-semibold text-lg">R$ {viagem.hospedagem.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Gasto Atual */}
+                <div className="bg-gray-700 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm font-medium">Gasto atual:</span>
+                    <span className="text-green-400 font-semibold">R$ {(viagem.hospedagem + viagem.tentacao).toLocaleString()}</span>
+                  </div>
+                  <div className="w-full bg-gray-600 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(((viagem.hospedagem + viagem.tentacao) / viagem.distotal) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Atividades Planejadas */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="text-purple-400" size={14} />
+                    <span className="text-gray-400 text-sm font-medium">Região</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="bg-blue-500 bg-opacity-20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                      {viagem.zona}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Star className="text-yellow-400" size={14} fill="currentColor" />
+                      <span className="text-yellow-400 text-sm font-medium">{viagem.rating}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transporte */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Plane className="text-blue-400" size={14} />
+                    <span className="text-gray-400">Ensolarado, 22°C</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-400">🌤️</span>
+                    <span className="text-gray-400">Voo + Metrô</span>
+                  </div>
+                </div>
+
+                {/* Botões */}
+                <div className="flex gap-2 pt-2">
+                  <button 
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Lógica de edição
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedTravel(viagem);
+                      setShowTravelModal(true);
+                    }}
+                  >
+                    Detalhes
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Paginação */}
+        <div className="flex items-center justify-center gap-2 py-4">
+          <button
+            onClick={() => setCurrentTravelPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentTravelPage === 1}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:bg-gray-800 disabled:text-gray-500 hover:bg-gray-600 transition-colors flex items-center gap-2"
+          >
+            <ChevronLeft size={16} />
+            Anterior
+          </button>
+          
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setCurrentTravelPage(i + 1)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                currentTravelPage === i + 1
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => setCurrentTravelPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentTravelPage === totalPages}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg disabled:bg-gray-800 disabled:text-gray-500 hover:bg-gray-600 transition-colors flex items-center gap-2"
+          >
+            Próxima
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPlanning = () => {
+    if (!planilhaFinanceira || planilhaFinanceira.length === 0) {
+      return (
+        <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-white">Planejamento Financeiro</h2>
+            <div className="flex gap-2">
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                <Import size={16} />
+                Importar Planilha
+              </button>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                <Save size={16} />
+                Atualizar Dados
+              </button>
+            </div>
+          </div>
+          <div className="bg-gray-800 rounded-xl p-8 text-center">
+            <h3 className="text-white text-xl mb-4">Nenhum dado de planejamento encontrado</h3>
+            <p className="text-gray-400">Importe sua planilha financeira para ver as projeções</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-8">
+        {/* Header com botões de importação */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">Planejamento Financeiro</h2>
+          <div className="flex gap-2">
+            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Import size={16} />
+              Importar Planilha
+            </button>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+              <Save size={16} />
+              Atualizar Dados
+            </button>
+          </div>
+        </div>
+
+        {/* Cards de Resumo Financeiro */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm font-medium">Meta Final 2028</p>
+              <p className="text-white text-xl font-bold">R$ 212.081</p>
+              <p className="text-blue-200 text-xs mt-1">Saldo Acumulado</p>
+            </div>
+            <Target className="text-blue-100" size={28} />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium">Renda Máxima</p>
+              <p className="text-white text-xl font-bold">R$ 13.000</p>
+              <p className="text-green-200 text-xs mt-1">Jun/2028</p>
+            </div>
+            <TrendingUp className="text-green-100" size={28} />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm font-medium">Crescimento</p>
+              <p className="text-white text-xl font-bold">285%</p>
+              <p className="text-purple-200 text-xs mt-1">Renda vs Inicial</p>
+            </div>
+            <Zap className="text-purple-100" size={28} />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-600 to-orange-800 rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100 text-sm font-medium">Viagens Plan.</p>
+              <p className="text-white text-xl font-bold">52</p>
+              <p className="text-orange-200 text-xs mt-1">Destinos únicos</p>
+            </div>
+            <Globe className="text-orange-100" size={28} />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de Projeção Financeira */}
+      <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-white font-semibold text-xl flex items-center gap-3">
+            <DollarSign className="text-green-400" size={24} />
+            Projeção Financeira 2026-2028
+          </h3>
+          <div className="flex gap-2">
+            <button className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+              Mensal
+            </button>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+              Anual
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="text-left text-gray-400 pb-3">Mês</th>
+                <th className="text-right text-gray-400 pb-3">Renda Dev</th>
+                <th className="text-right text-gray-400 pb-3">Renda Contab</th>
+                <th className="text-right text-gray-400 pb-3">Freelas</th>
+                <th className="text-right text-gray-400 pb-3">Total</th>
+                <th className="text-right text-gray-400 pb-3">Gastos</th>
+                <th className="text-right text-gray-400 pb-3">Aporte</th>
+                <th className="text-right text-gray-400 pb-3">Acumulado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planilhaFinanceira.map((item, index) => (
+                <tr key={index} className="border-b border-gray-700 hover:bg-gray-700 transition-colors">
+                  <td className="py-3 text-white font-medium">{item.mes}</td>
+                  <td className="py-3 text-right text-gray-300">R$ {Number(item.rendaDev).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-gray-300">R$ {Number(item.rendaContab).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-blue-400">R$ {Number(item.freelas).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-green-400 font-semibold">R$ {Number(item.rendaTotal).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-red-400">R$ {Number(item.gastos).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-purple-400">R$ {Number(item.aporte).toLocaleString('pt-BR')}</td>
+                  <td className="py-3 text-right text-yellow-400 font-bold">R$ {Number(item.saldoAcum).toLocaleString('pt-BR')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Análise e Insights Financeiros */}
+      <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+        <h3 className="text-white font-semibold mb-6 text-lg flex items-center gap-3">
+          <AlertCircle className="text-yellow-400" size={20} />
+          Análise do Planejamento Financeiro
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-green-400 font-medium">Crescimento Consistente</span>
+            </div>
+            <p className="text-gray-300 text-sm">
+              Renda cresce de R$ 6.500 para R$ 13.000 (+100%) até 2028
+            </p>
+          </div>
+
+          <div className="bg-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span className="text-blue-400 font-medium">Diversificação</span>
+            </div>
+            <p className="text-gray-300 text-sm">
+              Freelas aumentam significativamente, reduzindo dependência
+            </p>
+          </div>
+
+          <div className="bg-gray-700 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <span className="text-yellow-400 font-medium">Meta Agressiva</span>
+            </div>
+            <p className="text-gray-300 text-sm">
+              Acumular R$ 212k em 2 anos é ambicioso mas alcançável
+            </p>
+          </div>
+        </div>
+
+        {/* Métricas importantes */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-400">87%</p>
+            <p className="text-gray-400 text-sm">Taxa de Poupança</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-400">R$ 8.278</p>
+            <p className="text-gray-400 text-sm">Aporte Médio Mensal</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-purple-400">32 meses</p>
+            <p className="text-gray-400 text-sm">Para Meta Final</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-orange-400">500%</p>
+            <p className="text-gray-400 text-sm">ROI Freelas</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Gráfico de Progresso (simulado) */}
+      <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+        <h3 className="text-white font-semibold mb-6 text-lg flex items-center gap-3">
+          <TrendingUp className="text-green-400" size={20} />
+          Evolução do Patrimônio
+        </h3>
+        <div className="space-y-4">
+          {planilhaFinanceira.map((item, index) => (
+            <div key={index} className="relative">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white font-medium">{item.mes}</span>
+                <span className="text-yellow-400 font-bold">R$ {Number(item.saldoAcum).toLocaleString('pt-BR')}</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all"
+                  style={{ width: `${Math.min((Number(item.saldoAcum) / 212081) * 100, 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+    );
+  };
+
+  const renderSettings = () => (
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 rounded-xl">
+          <User className="text-white" size={32} />
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold text-white">Perfil do Usuário</h2>
+          <p className="text-gray-400">Configure seu perfil e preferências</p>
+        </div>
+      </div>
+
+      {/* Seção de Perfil */}
+      <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+        <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+          <User className="text-purple-400" size={24} />
+          Informações do Perfil
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Nome</label>
+              <input 
+                type="text" 
+                defaultValue="wellevelton silva"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Email</label>
+              <input 
+                type="email" 
+                defaultValue="wellevelton@email.com"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Cargo Atual</label>
+              <input 
+                type="text" 
+                defaultValue="Desenvolvedor Frontend Jr"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-400 text-sm mb-2">Localização</label>
+              <input 
+                type="text" 
+                defaultValue="São Paulo, Brasil"
+                className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-4 mt-6">
+          <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors">
+            Salvar Alterações
+          </button>
+          <button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Integrações */}
+        <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+          <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+            <Building className="text-blue-400" size={24} />
+            Integrações
+          </h3>
+          <div className="space-y-4">
+            <div className="bg-gray-700 rounded-xl p-6 hover:bg-gray-600 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <span className="text-green-600 font-bold text-lg">N</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Neon Database</h4>
+                    <p className="text-gray-400 text-sm">Banco de dados PostgreSQL na nuvem</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-green-400 text-sm font-medium">Conectado</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-700 rounded-xl p-6 hover:bg-gray-600 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-lg">G</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Google Sheets</h4>
+                    <p className="text-gray-400 text-sm">Sincronização com planilhas Google</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-yellow-400 text-sm font-medium">Configurando</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-700 rounded-xl p-6 hover:bg-gray-600 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <span className="text-purple-600 font-bold text-lg">T</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Trello Integration</h4>
+                    <p className="text-gray-400 text-sm">Sincronização de projetos</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                  <span className="text-gray-400 text-sm font-medium">Disponível</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Backup & Exportação */}
+        <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+          <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+            <Save className="text-green-400" size={24} />
+            Backup & Exportação
+          </h3>
+          <div className="space-y-4">
+            <div className="bg-gray-700 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-white font-medium">Último backup</span>
+                <span className="text-green-400 text-sm">Há 2 horas</span>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full w-full"></div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <Import size={20} />
+                Exportar Todos os Dados
+              </button>
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <Save size={20} />
+                Backup Manual
+              </button>
+              <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <Users size={20} />
+                Importar do Trello
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Preferências */}
+      <div className="bg-gray-800 rounded-xl p-8 shadow-lg">
+        <h3 className="text-white font-semibold mb-6 text-xl flex items-center gap-3">
+          <User className="text-purple-400" size={24} />
+          Preferências do Usuário
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h4 className="text-white font-medium">Notificações</h4>
+            <div className="space-y-3">
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Notificações de metas</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
+              </label>
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Lembrete de backup</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
+              </label>
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Resumo semanal</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
+              </label>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <h4 className="text-white font-medium">Sincronização</h4>
+            <div className="space-y-3">
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Sincronização automática</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" defaultChecked />
+              </label>
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Backup diário automático</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
+              </label>
+              <label className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                <span className="text-white">Modo offline</span>
+                <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Modal de Detalhes da Viagem
+  const TravelDetailModal = () => {
+    if (!selectedTravel) return null;
+
+    const calculateDuration = () => {
+      const start = new Date(selectedTravel.inicio);
+      const end = new Date(selectedTravel.fim);
+      return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header do Modal */}
+          <div className={`bg-gradient-to-br ${selectedTravel.zona === 'Schengen' ? 'from-green-500 to-green-600' : 'from-blue-500 to-blue-600'} p-6 relative`}>
+            <button 
+              onClick={() => setShowTravelModal(false)} 
+              className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+            
+            <div className="flex items-center justify-between text-white">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">{selectedTravel.cidade}</h2>
+                <div className="flex items-center gap-4 text-lg">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={20} />
+                    <span>{new Date(selectedTravel.inicio).toLocaleDateString('pt-BR')} - {new Date(selectedTravel.fim).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={20} />
+                    <span>{calculateDuration()} dias</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="text-yellow-300" size={20} fill="currentColor" />
+                  <span className="text-2xl font-bold">{selectedTravel.rating}</span>
+                </div>
+                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                  {selectedTravel.zona}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Conteúdo do Modal */}
+          <div className="p-6 space-y-6">
+            {/* Resumo de Custos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Total da Viagem</h3>
+                  <DollarSign size={24} />
+                </div>
+                <p className="text-2xl font-bold">R$ {selectedTravel.distotal.toLocaleString()}</p>
+                <p className="text-green-200 text-sm">Custo completo</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Hospedagem</h3>
+                  <Hotel size={24} />
+                </div>
+                <p className="text-2xl font-bold">R$ {selectedTravel.hospedagem.toLocaleString()}</p>
+                <p className="text-blue-200 text-sm">{Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 100)}% do total</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Por Dia</h3>
+                  <Calendar size={24} />
+                </div>
+                <p className="text-2xl font-bold">R$ {Math.round(selectedTravel.distotal / calculateDuration()).toLocaleString()}</p>
+                <p className="text-purple-200 text-sm">Custo médio diário</p>
+              </div>
+            </div>
+
+            {/* Detalhamento de Custos */}
+            <div className="bg-gray-700 rounded-xl p-6">
+              <h3 className="text-white font-semibold text-xl mb-4 flex items-center gap-2">
+                <TrendingUp className="text-blue-400" size={24} />
+                Detalhamento de Custos
+              </h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Hospedagem</span>
+                    <Hotel className="text-blue-400" size={16} />
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.hospedagem.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Tentações</span>
+                    <span className="text-orange-400">🛍️</span>
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.tentacao.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Importações</span>
+                    <span className="text-purple-400">📦</span>
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.importe.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Bagagem</span>
+                    <span className="text-yellow-400">🧳</span>
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.bagemia.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Alimentos</span>
+                    <span className="text-green-400">🍽️</span>
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.bimentos.toLocaleString()}</p>
+                </div>
+                
+                <div className="bg-gray-600 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-300 text-sm">Cidades</span>
+                    <MapPin className="text-red-400" size={16} />
+                  </div>
+                  <p className="text-white font-semibold text-lg">R$ {selectedTravel.cidades.toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* Gráfico de Pizza Visual */}
+              <div className="mt-6">
+                <h4 className="text-white font-medium mb-3">Distribuição de Gastos</h4>
+                <div className="grid grid-cols-6 gap-2 h-4 rounded-lg overflow-hidden">
+                  <div 
+                    className="bg-blue-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 6))}`}}
+                    title={`Hospedagem: ${Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                  <div 
+                    className="bg-orange-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.tentacao / selectedTravel.distotal) * 6))}`}}
+                    title={`Tentações: ${Math.round((selectedTravel.tentacao / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                  <div 
+                    className="bg-purple-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.importe / selectedTravel.distotal) * 6))}`}}
+                    title={`Importações: ${Math.round((selectedTravel.importe / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                  <div 
+                    className="bg-yellow-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.bagemia / selectedTravel.distotal) * 6))}`}}
+                    title={`Bagagem: ${Math.round((selectedTravel.bagemia / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                  <div 
+                    className="bg-green-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.bimentos / selectedTravel.distotal) * 6))}`}}
+                    title={`Alimentos: ${Math.round((selectedTravel.bimentos / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                  <div 
+                    className="bg-red-500" 
+                    style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.cidades / selectedTravel.distotal) * 6))}`}}
+                    title={`Cidades: ${Math.round((selectedTravel.cidades / selectedTravel.distotal) * 100)}%`}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Informações Adicionais */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-700 rounded-xl p-6">
+                <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                  <MapPin className="text-green-400" size={20} />
+                  Informações da Viagem
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">País:</span>
+                    <span className="text-white font-medium">{selectedTravel.pais}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Zona:</span>
+                    <span className="text-white font-medium">{selectedTravel.zona}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Semana:</span>
+                    <span className="text-white font-medium">{selectedTravel.semana}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Distância:</span>
+                    <span className="text-white font-medium">{selectedTravel.longdist.toLocaleString()} km</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Avaliação:</span>
+                    <div className="flex items-center gap-1">
+                      <Star className="text-yellow-400" size={16} fill="currentColor" />
+                      <span className="text-white font-medium">{selectedTravel.rating}/10</span>
+                    </div>
+                  </div>
+                  {selectedTravel.notes > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Notas:</span>
+                      <span className="text-white font-medium">{selectedTravel.notes}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-xl p-6">
+                <h3 className="text-white font-semibold text-lg mb-4 flex items-center gap-2">
+                  <Target className="text-purple-400" size={20} />
+                  Comparativo de Custos
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-400">vs. Média geral</span>
+                      <span className="text-white font-medium">
+                        {selectedTravel.distotal > 2000 ? '+' : ''}
+                        {Math.round(((selectedTravel.distotal - 2000) / 2000) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-600 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${selectedTravel.distotal > 2000 ? 'bg-red-500' : 'bg-green-500'}`}
+                        style={{ width: `${Math.min((selectedTravel.distotal / 3000) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-600 rounded-lg p-3">
+                    <div className="text-center">
+                      <p className="text-gray-400 text-sm">Posição no ranking</p>
+                      <p className="text-white font-bold text-xl">#{selectedTravel.id}</p>
+                      <p className="text-gray-400 text-xs">de {viagensData.length} destinos</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex gap-4 pt-4">
+              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <Edit size={20} />
+                Editar Viagem
+              </button>
+              <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <Save size={20} />
+                Exportar Dados
+              </button>
+              <button 
+                onClick={() => setShowTravelModal(false)}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Modal Components
+  const EventModal = () => {
+    const [eventTitle, setEventTitle] = useState('');
+    const [eventDescription, setEventDescription] = useState('');
+    const [startTime, setStartTime] = useState('09:00');
+    const [endTime, setEndTime] = useState('10:00');
+    const [eventCategory, setEventCategory] = useState('Pessoal');
+
+    const handleSaveEvent = () => {
+      if (!eventTitle.trim()) {
+        alert('Por favor, insira um título para o evento');
+        return;
+      }
+
+      addEvent({
+        title: eventTitle,
+        description: eventDescription,
+        startTime,
+        endTime,
+        category: eventCategory
+      });
+
+      // Reset form
+      setEventTitle('');
+      setEventDescription('');
+      setStartTime('09:00');
+      setEndTime('10:00');
+      setEventCategory('Pessoal');
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white font-semibold">
+              Novo Evento - {selectedDate?.toLocaleDateString('pt-BR')}
+            </h3>
+            <button 
+              onClick={() => {
+                setShowEventModal(false);
+                setSelectedDate(null);
+              }} 
+              className="text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-400 text-sm mb-1">Título</label>
+              <input
+                type="text"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2"
+                placeholder="Digite o título do evento"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-400 text-sm mb-1">Descrição</label>
+              <textarea
+                value={eventDescription}
+                onChange={(e) => setEventDescription(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 h-20 resize-none"
+                placeholder="Descrição opcional"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Início</label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-400 text-sm mb-1">Fim</label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full bg-gray-700 text-white rounded-lg px-3 py-2"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-gray-400 text-sm mb-1">Categoria</label>
+              <select
+                value={eventCategory}
+                onChange={(e) => setEventCategory(e.target.value)}
+                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2"
+              >
+                <option value="Pessoal">Pessoal</option>
+                <option value="Trabalho">Trabalho</option>
+                <option value="Estudos">Estudos</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Lazer">Lazer</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 mt-6">
+            <button
+              onClick={handleSaveEvent}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
+            >
+              Salvar
+            </button>
+            <button
+              onClick={() => {
+                setShowEventModal(false);
+                setSelectedDate(null);
+              }}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Tab content renderer
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'projects':
+        return renderProjects();
+      case 'calendar':
+        return (
+          <div className="space-y-6">
+            <div className="flex gap-1 bg-gray-800 p-1 rounded-lg w-fit">
+              {['calendar', 'goals'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveSubTab(tab)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeSubTab === tab
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {tab === 'calendar' ? '📅 Calendário' : '🎯 Metas'}
+                </button>
+              ))}
+            </div>
+            {activeSubTab === 'calendar' ? renderCalendar() : renderGoals()}
+          </div>
+        );
+      case 'finances':
+        return (
+          <div className="space-y-6">
+            <div className="flex gap-1 bg-gray-800 p-1 rounded-lg w-fit">
+              {['transactions', 'budget', 'planning'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveSubTab(tab)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeSubTab === tab
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {tab === 'transactions' ? '💰 Transações' : tab === 'budget' ? '📊 Orçamento' : '📈 Planejamento'}
+                </button>
+              ))}
+            </div>
+            {activeSubTab === 'transactions' ? renderFinances() : 
+             activeSubTab === 'budget' ? renderBudget() : renderPlanning()}
+          </div>
+        );
+      case 'career':
+        return renderCareer();
+      case 'travels':
+        return renderTravels();
+      case 'settings':
+        return renderSettings();
+      default:
+        return renderProjects();
+    }
+  };
+
+  return (
+    <div className="h-full bg-gray-900 flex flex-col">
+      {/* Header */}
+      <header className="bg-gray-800 border-b border-gray-700 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Planner Pro</h1>
+            <p className="text-gray-400 text-sm">Seu organizador pessoal completo</p>
+          </div>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors"
+            >
+              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                <User size={16} className="text-white" />
+              </div>
+              <span className="text-white text-sm font-medium">wellevelton silva</span>
+              <Settings size={14} className="text-gray-400" />
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 w-48 z-50">
+                <button 
+                  onClick={() => {
+                    setActiveTab('settings');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  <User size={16} />
+                  Perfil
+                </button>
+                <button 
+                  onClick={() => setShowUserMenu(false)}
+                  className="w-full text-left px-4 py-2 text-white hover:bg-gray-700 transition-colors flex items-center gap-2"
+                >
+                  <Settings size={16} />
+                  Configurações
+                </button>
+                <hr className="border-gray-700 my-2" />
+                <button className="w-full text-left px-4 py-2 text-red-400 hover:bg-gray-700 transition-colors flex items-center gap-2">
+                  <X size={16} />
+                  Sair
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <nav className="bg-gray-800 border-b border-gray-700 px-4">
+        <div className="flex space-x-1">
+          {[
+            { id: 'projects', label: '📋 Projetos' },
+            { id: 'calendar', label: '📅 Agenda & Metas' },
+            { id: 'finances', label: '💰 Finanças' },
+            { id: 'career', label: '💼 Carreira' },
+            { id: 'travels', label: '✈️ Viagens' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setActiveSubTab(tab.id === 'calendar' ? 'calendar' : tab.id === 'finances' ? 'transactions' : '');
+              }}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-gray-400 hover:text-white hover:border-gray-600'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 overflow-auto">
+        {renderContent()}
+      </main>
+
+      {/* Modals */}
+      {showEventModal && selectedDate && <EventModal />}
+      {showTravelModal && <TravelDetailModal />}
+    </div>
+  );
+};
+
+export default PlannerPro;
