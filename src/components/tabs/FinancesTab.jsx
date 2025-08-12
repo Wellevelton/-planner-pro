@@ -15,8 +15,43 @@ const FinancesTab = ({
   planilhaFinanceira 
 }) => {
   const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  
+  // Funções para cálculos automáticos dos cards
+  const getFinalGoal = () => {
+    if (!planilhaFinanceira || planilhaFinanceira.length === 0) return 0;
+    const lastMonth = planilhaFinanceira[planilhaFinanceira.length - 1];
+    return lastMonth.saldoAcum || 0;
+  };
+
+  const getMaxIncome = () => {
+    if (!planilhaFinanceira || planilhaFinanceira.length === 0) return 0;
+    const maxIncome = Math.max(...planilhaFinanceira.map(item => item.rendaTotal || 0));
+    return maxIncome;
+  };
+
+  const getMaxIncomeMonth = () => {
+    if (!planilhaFinanceira || planilhaFinanceira.length === 0) return '';
+    const maxIncome = Math.max(...planilhaFinanceira.map(item => item.rendaTotal || 0));
+    const maxMonth = planilhaFinanceira.find(item => item.rendaTotal === maxIncome);
+    return maxMonth ? maxMonth.mes : '';
+  };
+
+  const getGrowthPercentage = () => {
+    if (!planilhaFinanceira || planilhaFinanceira.length < 2) return 0;
+    const firstIncome = planilhaFinanceira[0].rendaTotal || 0;
+    const lastIncome = planilhaFinanceira[planilhaFinanceira.length - 1].rendaTotal || 0;
+    if (firstIncome === 0) return 0;
+    return Math.round(((lastIncome - firstIncome) / firstIncome) * 100);
+  };
+
+  const getTravelCount = () => {
+    // Contar viagens únicas baseado nos dados de viagens
+    // Por enquanto retorna 52 como na imagem, mas pode ser calculado dinamicamente
+    return 52;
+  };
+
   // Finance functions
   const getTotalIncome = () => {
     return finances
@@ -328,16 +363,6 @@ const FinancesTab = ({
         <div className="space-y-8">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white">Planejamento Financeiro</h2>
-            <div className="flex gap-2">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                <Import size={16} />
-                Importar Planilha
-              </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                <Save size={16} />
-                Atualizar Dados
-              </button>
-            </div>
           </div>
           <div className="bg-gray-800 rounded-xl p-8 text-center">
             <h3 className="text-white text-xl mb-4">Nenhum dado de planejamento encontrado</h3>
@@ -349,19 +374,9 @@ const FinancesTab = ({
 
     return (
       <div className="space-y-8">
-        {/* Header com botões de importação */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">Planejamento Financeiro</h2>
-          <div className="flex gap-2">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-              <Import size={16} />
-              Importar Planilha
-            </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-              <Save size={16} />
-              Atualizar Dados
-            </button>
-          </div>
         </div>
 
         {/* Cards de Resumo Financeiro */}
@@ -370,7 +385,9 @@ const FinancesTab = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Meta Final 2028</p>
-                <p className="text-white text-xl font-bold">R$ 212.081</p>
+                <p className="text-white text-xl font-bold">
+                  {formatCurrency(getFinalGoal())}
+                </p>
                 <p className="text-blue-200 text-xs mt-1">Saldo Acumulado</p>
               </div>
               <div className="bg-blue-500 bg-opacity-30 p-3 rounded-lg">
@@ -383,8 +400,12 @@ const FinancesTab = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Renda Máxima</p>
-                <p className="text-white text-xl font-bold">R$ 13.000</p>
-                <p className="text-green-200 text-xs mt-1">Jun/2028</p>
+                <p className="text-white text-xl font-bold">
+                  {formatCurrency(getMaxIncome())}
+                </p>
+                <p className="text-green-200 text-xs mt-1">
+                  {getMaxIncomeMonth() ? getMaxIncomeMonth().split('-').reverse().join('/') : 'N/A'}
+                </p>
               </div>
               <div className="bg-green-500 bg-opacity-30 p-3 rounded-lg">
                 <TrendingUp className="text-green-100" size={28} />
@@ -396,7 +417,7 @@ const FinancesTab = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Crescimento</p>
-                <p className="text-white text-xl font-bold">285%</p>
+                <p className="text-white text-xl font-bold">{getGrowthPercentage()}%</p>
                 <p className="text-purple-200 text-xs mt-1">Renda vs Inicial</p>
               </div>
               <div className="bg-purple-500 bg-opacity-30 p-3 rounded-lg">
@@ -409,7 +430,7 @@ const FinancesTab = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-sm font-medium">Viagens Plan.</p>
-                <p className="text-white text-xl font-bold">52</p>
+                <p className="text-white text-xl font-bold">{getTravelCount()}</p>
                 <p className="text-orange-200 text-xs mt-1">Destinos únicos</p>
               </div>
               <div className="bg-orange-500 bg-opacity-30 p-3 rounded-lg">

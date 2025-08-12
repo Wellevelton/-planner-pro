@@ -1,204 +1,254 @@
-# Planner Pro - Organizador Pessoal
+# 🚀 Planner Pro
 
-Uma aplicação React completa para planejamento pessoal, incluindo gerenciamento de projetos, calendário, finanças, carreira e viagens.
+Um aplicativo completo de planejamento pessoal com backend integrado, autenticação e sincronização com Google Calendar.
 
-## 🚀 Funcionalidades
+## ✨ Funcionalidades
 
-- **📋 Projetos**: Kanban board com drag & drop para gerenciar tarefas
-- **📅 Calendário**: Visualização mensal com eventos e metas
-- **💰 Finanças**: Controle de transações, orçamento e planejamento financeiro
-- **💼 Carreira**: Planejamento profissional com skills e certificações
-- **✈️ Viagens**: Organização de viagens com custos e detalhes
-- **⚙️ Configurações**: Perfil do usuário e preferências
+### 📊 **Gestão de Projetos**
+- Criação e acompanhamento de projetos
+- Definição de prioridades e status
+- Controle de progresso
+
+### 🎯 **Sistema de Metas**
+- Metas principais com sub-objetivos
+- Cálculo automático de progresso
+- Categorização e priorização
+
+### 💰 **Planejamento Financeiro**
+- Controle de receitas e despesas
+- Projeções financeiras
+- Importação de planilhas CSV
+- Orçamento por categoria
+
+### ✈️ **Planejamento de Viagens**
+- Organização de viagens
+- Controle de custos
+- Importação de dados via CSV
+- Cálculos automáticos
+
+### 💼 **Planejamento de Carreira**
+- Cursos e certificações
+- Milestones profissionais
+- Integração com finanças
+
+### 📅 **Google Calendar**
+- Sincronização automática
+- Criação de eventos
+- Integração completa
 
 ## 🛠️ Tecnologias
 
-- **React 18** - Biblioteca principal
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Framework de estilização
+### Frontend
+- **React 18** - Framework principal
+- **Vite** - Build tool
+- **Tailwind CSS** - Estilização
 - **Lucide React** - Ícones
-- **LocalStorage** - Persistência de dados
+- **React Hooks** - Gerenciamento de estado
+
+### Backend
+- **Node.js** - Runtime
+- **Express.js** - Framework web
+- **Prisma** - ORM
+- **PostgreSQL** - Banco de dados
+- **JWT** - Autenticação
+- **Google APIs** - Integração
+
+### Deploy
+- **Vercel** - Frontend e Backend
+- **Neon** - Banco de dados PostgreSQL
+
+## 🚀 Instalação
+
+### Pré-requisitos
+- Node.js 18+
+- npm ou yarn
+- Conta no Vercel
+- Conta no Neon (PostgreSQL)
+
+### Frontend
+```bash
+# Instalar dependências
+npm install
+
+# Executar em desenvolvimento
+npm run dev
+
+# Build para produção
+npm run build
+```
+
+### Backend
+```bash
+# Entrar na pasta do backend
+cd backend
+
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+cp env.example .env
+
+# Executar em desenvolvimento
+npm run dev
+
+# Deploy no Vercel
+vercel --prod
+```
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente (Backend)
+```env
+DATABASE_URL="postgresql://..."
+JWT_SECRET="seu-jwt-secret"
+GOOGLE_CLIENT_ID="seu-google-client-id"
+GOOGLE_CLIENT_SECRET="seu-google-client-secret"
+CORS_ORIGIN="https://seu-frontend.vercel.app"
+```
+
+### Variáveis de Ambiente (Frontend)
+```env
+VITE_API_URL="https://seu-backend.vercel.app/api"
+```
+
+## 📱 Uso
+
+1. **Acesse o aplicativo**
+2. **Faça login** ou registre-se
+3. **Configure seu perfil**
+4. **Comece a planejar!**
+
+### 🔐 Dados de Teste
+- **Email:** `teste@planner.com`
+- **Senha:** `123456`
+
+## 🔗 Links
+
+- **Frontend:** https://planner-gwt6msj20-sobreiras-projects.vercel.app
+- **Backend:** https://backend-9rwjcunr2-sobreiras-projects.vercel.app
+- **API Docs:** https://backend-9rwjcunr2-sobreiras-projects.vercel.app/api/health
 
 ## 📁 Estrutura do Projeto
 
 ```
-src/
-├── components/          # Componentes reutilizáveis
-│   ├── Header.jsx      # Cabeçalho da aplicação
-│   ├── Navigation.jsx  # Navegação entre abas
-│   ├── tabs/           # Componentes das abas principais
-│   └── modals/         # Modais da aplicação
-├── hooks/              # Hooks personalizados
-│   └── useStoredState.js # Hook para persistir dados
-├── utils/              # Utilitários e funções auxiliares
-│   └── formatters.js   # Formatação de dados
-├── data/               # Dados iniciais da aplicação
-│   └── initialData.js  # Dados mock para demonstração
-├── App.jsx             # Componente principal
-├── main.jsx            # Ponto de entrada
-└── index.css           # Estilos globais
+planner-pro/
+├── src/
+│   ├── components/          # Componentes React
+│   │   ├── tabs/           # Abas principais
+│   │   ├── modals/         # Modais
+│   │   └── Header.jsx      # Cabeçalho
+│   ├── services/           # Serviços de API
+│   │   └── api.js         # Centralização de API calls
+│   ├── data/              # Dados iniciais
+│   │   ├── initialData.js # Dados zerados para teste
+│   │   └── travelsData.js # Dados de viagens
+│   ├── hooks/             # Hooks customizados
+│   │   └── useStoredState.js
+│   └── App.jsx            # Componente principal
+├── backend/
+│   ├── prisma/            # Schema do banco
+│   │   ├── schema.prisma  # Modelos do banco
+│   │   └── seed.js        # Dados iniciais
+│   ├── server-complete.js # Servidor Express
+│   ├── package.json       # Dependências do backend
+│   ├── env.example        # Exemplo de variáveis
+│   └── README.md          # Documentação do backend
+├── DEPLOYMENT_GUIDE.md    # Guia de deploy
+├── README.md              # Este arquivo
+└── package.json           # Dependências do frontend
 ```
-
-## 🚀 Como Executar
-
-### Pré-requisitos
-
-- Node.js 16+ 
-- npm ou yarn
-
-### Instalação
-
-1. **Clone o repositório**
-```bash
-git clone <url-do-repositorio>
-cd planner-pro
-```
-
-2. **Instale as dependências**
-```bash
-npm install
-# ou
-yarn install
-```
-
-3. **Execute o projeto**
-```bash
-npm run dev
-# ou
-yarn dev
-```
-
-4. **Acesse no navegador**
-```
-http://localhost:3000
-```
-
-### Scripts Disponíveis
-
-- `npm run dev` - Inicia o servidor de desenvolvimento
-- `npm run build` - Gera build de produção
-- `npm run preview` - Visualiza o build de produção
-- `npm run lint` - Executa o linter
-- `npm run lint:fix` - Corrige problemas do linter
-
-## 📱 Como Usar
-
-### Projetos
-- Arraste e solte projetos entre as colunas (A Fazer, Em Progresso, Concluído)
-- Clique em "Novo Projeto" para adicionar tarefas
-- Visualize progresso, prioridade e datas de vencimento
-
-### Calendário
-- Navegue entre os meses
-- Clique em uma data para adicionar eventos
-- Visualize metas e objetivos
-
-### Finanças
-- Acompanhe receitas e despesas
-- Visualize orçamento mensal por categoria
-- Analise projeções financeiras
-
-### Carreira
-- Defina metas profissionais
-- Acompanhe desenvolvimento de skills
-- Planeje certificações e cursos
-
-### Viagens
-- Organize destinos e custos
-- Visualize dados de viagens planejadas
-- Acompanhe orçamentos e atividades
-
-## 🔧 Personalização
-
-### Adicionar Novas Funcionalidades
-
-1. Crie novos componentes em `src/components/`
-2. Adicione novas abas em `src/components/tabs/`
-3. Atualize a navegação em `src/components/Navigation.jsx`
-4. Adicione dados iniciais em `src/data/initialData.js`
-
-### Modificar Estilos
-
-- Edite `src/index.css` para estilos globais
-- Use classes Tailwind CSS nos componentes
-- Modifique `tailwind.config.js` para customizar o tema
-
-### Persistência de Dados
-
-- O hook `useStoredState` salva automaticamente no localStorage
-- Dados são sincronizados entre abas
-- Backup automático dos dados do usuário
-
-## 🎨 Design System
-
-### Cores
-- **Primária**: Azul (#3B82F6)
-- **Sucesso**: Verde (#10B981)
-- **Aviso**: Amarelo (#F59E0B)
-- **Erro**: Vermelho (#EF4444)
-- **Fundo**: Cinza escuro (#111827)
-
-### Componentes
-- Cards com bordas arredondadas
-- Gradientes para elementos de destaque
-- Hover effects e transições suaves
-- Layout responsivo para diferentes telas
-
-## 📊 Dados de Exemplo
-
-A aplicação inclui dados mock para demonstração:
-- 3 projetos de exemplo
-- 6 transações financeiras
-- 4 metas e objetivos
-- 3 viagens planejadas
-- Dados de carreira completos
-- Projeções financeiras até 2028
 
 ## 🚀 Deploy
 
-### Build de Produção
+### Deploy Rápido
+1. **Fork** este repositório
+2. Configure as variáveis de ambiente no Vercel
+3. Deploy automático
+
+### Deploy Manual
+Veja o [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) para instruções detalhadas.
+
+## 🔐 Autenticação
+
+### Login Local
+- Email e senha
+- Dados de teste disponíveis
+
+### Login Google
+- OAuth 2.0 integrado
+- Sincronização com Google Calendar
+
+## 📊 Banco de Dados
+
+### Tabelas Principais
+- **users** - Usuários do sistema
+- **projects** - Projetos
+- **goals** - Metas e objetivos
+- **sub_goals** - Sub-objetivos das metas
+- **finances** - Transações financeiras
+- **financial_planning** - Planejamento financeiro
+- **travels** - Viagens
+- **career_items** - Itens de carreira
+- **calendar_events** - Eventos do calendário
+
+## 🔧 Scripts Disponíveis
+
+### Frontend
 ```bash
-npm run build
+npm run dev          # Desenvolvimento
+npm run build        # Build para produção
+npm run preview      # Preview da build
 ```
 
-### Servir Build
+### Backend
 ```bash
-npm run preview
+npm run dev          # Desenvolvimento
+npm start            # Produção
+npm run deploy       # Deploy no Vercel
+npm run db:generate  # Gerar cliente Prisma
+npm run db:push      # Criar tabelas
+npm run db:seed      # Popular dados iniciais
 ```
-
-### Deploy em Serviços
-- **Vercel**: Conecte o repositório Git
-- **Netlify**: Arraste a pasta `dist`
-- **GitHub Pages**: Configure o workflow de deploy
 
 ## 🤝 Contribuição
 
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
+1. **Fork** o projeto
+2. Crie uma **branch** para sua feature (`git checkout -b feature/AmazingFeature`)
+3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um **Pull Request**
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 👨‍💻 Autor
-
-**wellevelton silva**
-- Desenvolvedor Frontend
-- Especialista em React e TypeScript
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ## 🆘 Suporte
 
-Se encontrar problemas ou tiver dúvidas:
-1. Verifique se todas as dependências estão instaladas
-2. Confirme que está usando Node.js 16+
-3. Limpe o cache: `npm run clean` ou delete `node_modules`
-4. Abra uma issue no repositório
+Se você encontrar algum problema ou tiver dúvidas:
+1. Verifique a [documentação do backend](backend/README.md)
+2. Consulte o [guia de deploy](DEPLOYMENT_GUIDE.md)
+3. Abra uma issue no GitHub
+
+## 🎯 Roadmap
+
+- [ ] Notificações push
+- [ ] App mobile (React Native)
+- [ ] Integração com mais calendários
+- [ ] Relatórios avançados
+- [ ] Backup automático
+- [ ] Modo offline
 
 ---
 
-**Planner Pro** - Organize sua vida de forma inteligente! 🚀
+**Desenvolvido com ❤️ para organizar sua vida!**
+
+### 📞 Contato
+
+- **GitHub:** [@seu-usuario](https://github.com/seu-usuario)
+- **Email:** seu-email@exemplo.com
+
+---
+
+**⭐ Se este projeto te ajudou, deixe uma estrela!**
 
 

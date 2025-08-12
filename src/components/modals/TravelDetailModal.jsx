@@ -5,9 +5,13 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
   if (!selectedTravel) return null;
 
   const calculateDuration = () => {
-    const start = new Date(selectedTravel.inicio);
-    const end = new Date(selectedTravel.fim);
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    try {
+      const start = new Date(selectedTravel.inicio);
+      const end = new Date(selectedTravel.fim);
+      return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      return 7; // Valor padrão se as datas não forem válidas
+    }
   };
 
   return (
@@ -24,11 +28,14 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
           
           <div className="flex items-center justify-between text-white">
             <div>
-              <h2 className="text-3xl font-bold mb-2">{selectedTravel.cidade}</h2>
+              <h2 className="text-3xl font-bold mb-2">{selectedTravel.cidade || 'Destino'}</h2>
               <div className="flex items-center gap-4 text-lg">
                 <div className="flex items-center gap-2">
                   <Calendar size={20} />
-                  <span>{new Date(selectedTravel.inicio).toLocaleDateString('pt-BR')} - {new Date(selectedTravel.fim).toLocaleDateString('pt-BR')}</span>
+                  <span>
+                    {selectedTravel.inicio ? new Date(selectedTravel.inicio).toLocaleDateString('pt-BR') : 'Data início'} - 
+                    {selectedTravel.fim ? new Date(selectedTravel.fim).toLocaleDateString('pt-BR') : 'Data fim'}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock size={20} />
@@ -39,7 +46,7 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
             <div className="text-right">
               <div className="flex items-center gap-2 mb-2">
                 <Star className="text-yellow-300" size={20} fill="currentColor" />
-                <span className="text-2xl font-bold">{selectedTravel.rating}</span>
+                <span className="text-2xl font-bold">{selectedTravel.rating || 'N/A'}</span>
               </div>
               <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
                 {selectedTravel.zona}
@@ -57,7 +64,7 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
                 <h3 className="font-semibold">Total da Viagem</h3>
                 <DollarSign size={24} />
               </div>
-              <p className="text-2xl font-bold">R$ {selectedTravel.distotal.toLocaleString()}</p>
+              <p className="text-2xl font-bold">R$ {(selectedTravel.total || selectedTravel.distotal || 0).toLocaleString()}</p>
               <p className="text-green-200 text-sm">Custo completo</p>
             </div>
             
@@ -66,8 +73,8 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
                 <h3 className="font-semibold">Hospedagem</h3>
                 <Hotel size={24} />
               </div>
-              <p className="text-2xl font-bold">R$ {selectedTravel.hospedagem.toLocaleString()}</p>
-              <p className="text-blue-200 text-sm">{Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 100)}% do total</p>
+              <p className="text-2xl font-bold">R$ {(selectedTravel.hospedagem || 0).toLocaleString()}</p>
+              <p className="text-blue-200 text-sm">{Math.round(((selectedTravel.hospedagem || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}% do total</p>
             </div>
             
             <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 text-white">
@@ -75,7 +82,7 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
                 <h3 className="font-semibold">Por Dia</h3>
                 <Calendar size={24} />
               </div>
-              <p className="text-2xl font-bold">R$ {Math.round(selectedTravel.distotal / calculateDuration()).toLocaleString()}</p>
+              <p className="text-2xl font-bold">R$ {Math.round(((selectedTravel.total || selectedTravel.distotal || 0) / calculateDuration())).toLocaleString()}</p>
               <p className="text-purple-200 text-sm">Custo médio diário</p>
             </div>
           </div>
@@ -93,47 +100,47 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
                   <span className="text-gray-300 text-sm">Hospedagem</span>
                   <Hotel className="text-blue-400" size={16} />
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.hospedagem.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.hospedagem || 0).toLocaleString()}</p>
               </div>
               
               <div className="bg-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Tentações</span>
-                  <span className="text-orange-400">🛍️</span>
+                  <span className="text-gray-300 text-sm">Alimentação</span>
+                  <span className="text-orange-400">🍽️</span>
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.tentacao.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.alimentacao || 0).toLocaleString()}</p>
               </div>
               
               <div className="bg-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Importações</span>
-                  <span className="text-purple-400">📦</span>
+                  <span className="text-gray-300 text-sm">Transporte</span>
+                  <span className="text-purple-400">🚗</span>
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.importe.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.transporte || 0).toLocaleString()}</p>
               </div>
               
               <div className="bg-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Bagagem</span>
-                  <span className="text-yellow-400">🧳</span>
+                  <span className="text-gray-300 text-sm">Academia</span>
+                  <span className="text-yellow-400">💪</span>
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.bagemia.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.academia || 0).toLocaleString()}</p>
               </div>
               
               <div className="bg-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Alimentos</span>
-                  <span className="text-green-400">🍽️</span>
+                  <span className="text-gray-300 text-sm">Suplementos</span>
+                  <span className="text-green-400">💊</span>
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.bimentos.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.suplementos || 0).toLocaleString()}</p>
               </div>
               
               <div className="bg-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Cidades</span>
+                  <span className="text-gray-300 text-sm">Atividades</span>
                   <MapPin className="text-red-400" size={16} />
                 </div>
-                <p className="text-white font-semibold text-lg">R$ {selectedTravel.cidades.toLocaleString()}</p>
+                <p className="text-white font-semibold text-lg">R$ {(selectedTravel.atividades || 0).toLocaleString()}</p>
               </div>
             </div>
 
@@ -143,33 +150,33 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
               <div className="grid grid-cols-6 gap-2 h-4 rounded-lg overflow-hidden">
                 <div 
                   className="bg-blue-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 6))}`}}
-                  title={`Hospedagem: ${Math.round((selectedTravel.hospedagem / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.hospedagem || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Hospedagem: ${Math.round(((selectedTravel.hospedagem || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
                 <div 
                   className="bg-orange-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.tentacao / selectedTravel.distotal) * 6))}`}}
-                  title={`Tentações: ${Math.round((selectedTravel.tentacao / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.alimentacao || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Alimentação: ${Math.round(((selectedTravel.alimentacao || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
                 <div 
                   className="bg-purple-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.importe / selectedTravel.distotal) * 6))}`}}
-                  title={`Importações: ${Math.round((selectedTravel.importe / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.transporte || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Transporte: ${Math.round(((selectedTravel.transporte || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
                 <div 
                   className="bg-yellow-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.bagemia / selectedTravel.distotal) * 6))}`}}
-                  title={`Bagagem: ${Math.round((selectedTravel.bagemia / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.academia || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Academia: ${Math.round(((selectedTravel.academia || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
                 <div 
                   className="bg-green-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.bimentos / selectedTravel.distotal) * 6))}`}}
-                  title={`Alimentos: ${Math.round((selectedTravel.bimentos / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.suplementos || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Suplementos: ${Math.round(((selectedTravel.suplementos || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
                 <div 
                   className="bg-red-500" 
-                  style={{gridColumn: `span ${Math.max(1, Math.round((selectedTravel.cidades / selectedTravel.distotal) * 6))}`}}
-                  title={`Cidades: ${Math.round((selectedTravel.cidades / selectedTravel.distotal) * 100)}%`}
+                  style={{gridColumn: `span ${Math.max(1, Math.round(((selectedTravel.atividades || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 6))}`}}
+                  title={`Atividades: ${Math.round(((selectedTravel.atividades || 0) / (selectedTravel.total || selectedTravel.distotal || 1)) * 100)}%`}
                 ></div>
               </div>
             </div>
@@ -227,28 +234,28 @@ const TravelDetailModal = ({ selectedTravel, setShowTravelModal, viagensData, se
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-400">Subtotal Base:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.subtotal_base?.toLocaleString() || selectedTravel.distotal.toLocaleString()}</div>
+                    <span className="text-gray-400">Subtotal:</span>
+                    <div className="text-white font-medium">R$ {(selectedTravel.subtotal || 0).toLocaleString()}</div>
                   </div>
                   <div>
-                    <span className="text-gray-400">Subtotal Alto:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.subtotal_alto?.toLocaleString() || selectedTravel.longdist.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Total Base:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.total_base?.toLocaleString() || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Total Alto:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.total_alto?.toLocaleString() || 'N/A'}</div>
+                    <span className="text-gray-400">Total:</span>
+                    <div className="text-white font-medium">R$ {(selectedTravel.total || 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <span className="text-gray-400">Buffer Base:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.buffer_base?.toLocaleString() || 'N/A'}</div>
+                    <div className="text-white font-medium">R$ {(selectedTravel.buffer_base || 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <span className="text-gray-400">Buffer Alto:</span>
-                    <div className="text-white font-medium">R$ {selectedTravel.buffer_alto?.toLocaleString() || 'N/A'}</div>
+                    <div className="text-white font-medium">R$ {(selectedTravel.buffer_alto || 0).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Total Base c/ Buffer:</span>
+                    <div className="text-white font-medium">R$ {(selectedTravel.total_base_c_buffer || 0).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Total Alto c/ Buffer:</span>
+                    <div className="text-white font-medium">R$ {(selectedTravel.total_alto_c_buffer || 0).toLocaleString()}</div>
                   </div>
                 </div>
                 

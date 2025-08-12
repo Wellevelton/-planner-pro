@@ -65,6 +65,7 @@ const App = () => {
   const [careerPlanning, setCareerPlanning] = useStoredState('careerPlanning', initialCareerPlanning);
   const [calendarEvents, setCalendarEvents] = useStoredState('calendarEvents', initialCalendarEvents);
   const [viagensDataState, setViagensDataState] = useStoredState('viagensData', viagensData);
+  const [planilhaFinanceiraState, setPlanilhaFinanceiraState] = useStoredState('planilhaFinanceira', planilhaFinanceira);
 
   // Função para limpar localStorage e carregar dados iniciais
   const resetToInitialData = () => {
@@ -76,12 +77,22 @@ const App = () => {
   const handleLogin = (loginData) => {
     console.log('Login realizado:', loginData);
     setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
   };
 
   // Função para logout
   const handleLogout = () => {
     setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
   };
+
+  // Verificar se há login salvo ao carregar a página
+  React.useEffect(() => {
+    const savedLogin = localStorage.getItem('isLoggedIn');
+    if (savedLogin === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   // Funções auxiliares
   const getEventsForDate = (date) => {
@@ -276,6 +287,7 @@ const App = () => {
         <SettingsTab 
           setViagensDataState={setViagensDataState}
           setFinances={setFinances}
+          setPlanilhaFinanceiraState={setPlanilhaFinanceiraState}
           onBack={() => {
             setShowProfile(false);
             setShowSettings(false);
@@ -329,7 +341,7 @@ const App = () => {
             setBudget={setBudget}
             editingBudget={editingBudget}
             setEditingBudget={setEditingBudget}
-            planilhaFinanceira={planilhaFinanceira}
+            planilhaFinanceira={planilhaFinanceiraState}
           />
         );
               case 'career':

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Settings, Import, FileText, Upload, Bell, Moon, Sun, Palette, Globe, Shield } from 'lucide-react';
 
-const SettingsTab = ({ setViagensDataState, setFinances, onBack }) => {
+const SettingsTab = ({ setViagensDataState, setFinances, setPlanilhaFinanceiraState, onBack }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [importType, setImportType] = useState('travels');
 
@@ -17,57 +17,146 @@ const SettingsTab = ({ setViagensDataState, setFinances, onBack }) => {
     reader.onload = (e) => {
       try {
         const csvData = e.target.result;
-        const lines = csvData.split('\n');
-        const headers = lines[0].split(',');
-        const data = lines.slice(1).map(line => {
-          const values = line.split(',');
+        console.log('Raw CSV data:', csvData.substring(0, 500)); // Debug: mostrar primeiros 500 caracteres
+        
+        const lines = csvData.split('\n').filter(line => line.trim() !== '');
+        console.log('Number of lines:', lines.length); // Debug
+        
+        if (lines.length < 2) {
+          alert('Arquivo CSV deve ter pelo menos um cabeçalho e uma linha de dados.');
+          return;
+        }
+
+        // Detectar o separador (vírgula ou ponto e vírgula)
+        const firstLine = lines[0];
+        const hasSemicolon = firstLine.includes(';');
+        const separator = hasSemicolon ? ';' : ',';
+        console.log('Detected separator:', separator); // Debug
+        
+        const headers = lines[0].split(separator).map(h => h.trim().replace(/"/g, ''));
+        console.log('Headers found:', headers); // Debug
+        
+        const data = lines.slice(1).map((line, lineIndex) => {
+          // Melhor parsing para lidar com separadores dentro de aspas
+          const values = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === separator && !inQuotes) {
+              values.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          values.push(current.trim()); // Último valor
+          
           const obj = {};
           headers.forEach((header, index) => {
-            obj[header.trim()] = values[index]?.trim() || '';
+            let value = values[index] || '';
+            // Remover aspas extras
+            value = value.replace(/^"|"$/g, '');
+            obj[header] = value;
           });
+          
+          console.log(`Line ${lineIndex + 1}:`, obj); // Debug
           return obj;
         });
 
-        if (importType === 'travels') {
-          // Processar dados de viagens
-          const travelData = data.map((row, index) => ({
-            id: index + 1,
-            destino: row.destino || row.Destino || '',
-            pais: row.pais || row.País || '',
-            data_inicio: row.data_inicio || row['Data Início'] || '',
-            data_fim: row.data_fim || row['Data Fim'] || '',
-            duracao: row.duracao || row.Duração || '',
-            orcamento: parseFloat(row.orcamento || row.Orçamento || 0),
-            status: row.status || row.Status || 'Planejada',
-            bloco: row.bloco || row.Bloco || '',
-            dias_schengen: row.dias_schengen || row['Dias Schengen'] || '',
-            notas: row.notas || row.Notas || '',
-            subtotal_base: parseFloat(row.subtotal_base || row['Subtotal Base'] || 0),
-            subtotal_alto: parseFloat(row.subtotal_alto || row['Subtotal Alto'] || 0),
-            total_base: parseFloat(row.total_base || row['Total Base'] || 0),
-            total_alto: parseFloat(row.total_alto || row['Total Alto'] || 0),
-            buffer_base: parseFloat(row.buffer_base || row['Buffer Base'] || 0),
-            buffer_alto: parseFloat(row.buffer_alto || row['Buffer Alto'] || 0),
-            fator_extrapolado: parseFloat(row.fator_extrapolado || row['Fator Extrapolado'] || 0)
-          }));
+        console.log('Processed data:', data); // Debug
+
+                 if (importType === 'travels') {
+           // Processar dados de viagens baseado na planilha real
+           const travelData = data.map((row, index) => {
+             // Debug: mostrar todas as chaves disponíveis
+             console.log(`Row ${index + 1} keys:`, Object.keys(row));
+             console.log(`Row ${index + 1} values:`, row);
+             
+                           // Função para extrair valor numérico de strings como "R$ 1.000"
+              const extractNumber = (value) => {
+                if (!value) return 0;
+                const numStr = value.toString().replace(/[^\d,.-]/g, '').replace(',', '.');
+                return parseFloat(numStr) || 0;
+              };
+
+              const travel = {
+                id: index + 1,
+                semana: parseInt(row.Semana || 0),
+                inicio: row.Início || '',
+                fim: row.Fim || '',
+                cidade: row.Cidade || '',
+                pais: row.País || '',
+                zona: row.Zona || '',
+                hospedagem: extractNumber(row.Hospedagem_base || row.Hospedagem),
+                alimentacao: extractNumber(row.Alimentação_base || row.Alimentação),
+                transporte: extractNumber(row.Transporte_base || row.Transporte),
+                academia: extractNumber(row.Academia_base || row.Academia),
+                suplementos: extractNumber(row.Suplementos_base || row.Suplementos),
+                atividades: extractNumber(row.Atividades_base || row.Atividades),
+                subtotal: extractNumber(row.Subtotal_base || row.Subtotal),
+                subtotal_alto: extractNumber(row.Subtotal_alto || 0),
+                fator_extrapolado: parseFloat(row.Fator_extrapolado || 0),
+                notas: row.Notas || '',
+                seguro_base: extractNumber(row.Seguro_base || 0),
+                telefone_base: extractNumber(row.Telefone_base || 0),
+                vistos_base: extractNumber(row.Vistos_base || 0),
+                seguro_alto: extractNumber(row.Seguro_alto || 0),
+                telefone_alto: extractNumber(row.Telefone_alto || 0),
+                vistos_alto: extractNumber(row.Vistos_alto || 0),
+                voos_longos: extractNumber(row.Voos_longos || 0),
+                total: extractNumber(row.Total_base || row.Total || 0),
+                total_alto: extractNumber(row.Total_alto || 0),
+                buffer_base: extractNumber(row.Buffer8_base || row.Buffer_base || 0),
+                buffer_alto: extractNumber(row.Buffer8_alto || row.Buffer_alto || 0),
+                total_base_c_buffer: extractNumber(row.Total_base_c_buffer || 0),
+                total_alto_c_buffer: extractNumber(row.Total_alto_c_buffer || 0),
+                bloco: row.Bloco || '',
+                dias_semana: parseInt(row.Dias_semana || 0),
+                dias_schengen: parseInt(row.Dias_Schengen || 0)
+              };
+             
+             console.log(`Travel ${index + 1}:`, travel); // Debug
+             return travel;
+           });
+          
+          console.log('Final travel data:', travelData); // Debug
           setViagensDataState(travelData);
-        } else {
-          // Processar dados financeiros
-          const financeData = data.map((row, index) => ({
-            id: index + 1,
-            date: row.date || row.data || row.Data || new Date().toISOString().split('T')[0],
-            description: row.description || row.descricao || row.Descrição || '',
-            amount: parseFloat(row.amount || row.valor || row.Valor || 0),
-            type: row.type || row.tipo || row.Tipo || 'expense',
-            category: row.category || row.categoria || row.Categoria || 'Outros',
-            notes: row.notes || row.notas || row.Notas || ''
-          }));
-          setFinances(financeData);
-        }
+                 } else {
+           // Processar dados financeiros da planilha de planejamento
+           const financeData = data.map((row, index) => {
+             // Função para extrair valor numérico de strings como "R$ 1.000"
+             const extractNumber = (value) => {
+               if (!value) return 0;
+               const numStr = value.toString().replace(/[^\d,.-]/g, '').replace(',', '.');
+               return parseFloat(numStr) || 0;
+             };
+
+
+
+             return {
+               mes: row['Ms'] || row.Mês || row.mes || row.Mes || '',
+               rendaDev: extractNumber(row['Renda Dev'] || row.rendaDev || row.RendaDev),
+               rendaContab: extractNumber(row['Renda Contab'] || row.rendaContab || row.RendaContab),
+               freelas: extractNumber(row.Freelas || row.freelas),
+               rendaTotal: extractNumber(row['Renda Total'] || row.rendaTotal || row.RendaTotal),
+               gastos: extractNumber(row.Gastos || row.gastos),
+               aporte: extractNumber(row.Aporte || row.aporte),
+               saldoAcum: extractNumber(row['Saldo Acum.'] || row.saldoAcum || row.SaldoAcum)
+             };
+           });
+           
+
+           setPlanilhaFinanceiraState(financeData);
+         }
 
         alert(`${importType === 'travels' ? 'Viagens' : 'Transações financeiras'} importadas com sucesso!`);
         setSelectedFile(null);
       } catch (error) {
+        console.error('Import error:', error); // Debug
         alert('Erro ao processar arquivo CSV. Verifique o formato.');
       }
     };
@@ -141,22 +230,22 @@ const SettingsTab = ({ setViagensDataState, setFinances, onBack }) => {
             )}
           </div>
 
-          <div className="bg-gray-700 rounded-lg p-4">
-            <h4 className="text-white font-medium mb-2">Formato esperado para CSV:</h4>
-            <div className="text-gray-400 text-sm space-y-1">
-              {importType === 'travels' ? (
-                <>
-                  <p>• Colunas: destino, país, data_início, data_fim, duração, orçamento, status</p>
-                  <p>• Exemplo: "Berlim, Alemanha, 2024-06-01, 2024-06-07, 7 dias, 5000, Planejada"</p>
-                </>
-              ) : (
-                <>
-                  <p>• Colunas: data, descrição, valor, tipo, categoria</p>
-                  <p>• Exemplo: "2024-01-15, Almoço, 25.50, expense, Alimentação"</p>
-                </>
-              )}
-            </div>
-          </div>
+                     <div className="bg-gray-700 rounded-lg p-4">
+             <h4 className="text-white font-medium mb-2">Formato esperado para CSV:</h4>
+             <div className="text-gray-400 text-sm space-y-1">
+               {importType === 'travels' ? (
+                 <>
+                   <p>• <strong>Planilha de Viagens:</strong> Semana, Início, Fim, Cidade, País, Zona, Hospedagem, Alimentação, Transporte, Academia, Suplementos, Atividades, Subtotal, Fator_extrapolado, Notas, Seguro_base, Telefone_base, Vistos_base, Seguro_alto, Telefone_alto, Vistos_alto, Voos_longos, Total, Subtotal_extrapolado, Buffer_base, Buffer_alto, Total_base_c_buffer, Total_alto_c_buffer, Bloco, Dias_semana, Dias_Schengen, Stay_28d_recommended, Monthly_rate_sim_RS, Monthly_savings_vs_4w_RS</p>
+                   <p>• <strong>Exemplo:</strong> "1, 2024-01-01, 2024-01-07, Berlim, Alemanha, Schengen, 500, 300, 200, 50, 30, 100, 1180, 1.2, Notas da viagem, 100, 50, 0, 150, 75, 0, 500, 1416, 100, 200, 1516, 1616, Bloco A, 7, 7, Sim, 2000, 500"</p>
+                 </>
+                               ) : (
+                  <>
+                    <p>• <strong>Planilha Financeira:</strong> Mês, Renda Dev, Renda Contab, Freelas, Renda Total, Gastos, Aporte, Saldo Acum.</p>
+                    <p>• <strong>Exemplo:</strong> "2026-01, 3500, 2500, 500, 6500, 2500, 4000, 4000"</p>
+                  </>
+                )}
+             </div>
+           </div>
         </div>
       </div>
 

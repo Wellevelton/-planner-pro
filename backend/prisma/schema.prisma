@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String?
+  googleId  String?  @unique
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  projects     Project[]
+  goals        Goal[]
+  finances     Finance[]
+  financialPlanning FinancialPlanning[]
+  travels      Travel[]
+  careerItems  CareerItem[]
+  calendarEvents CalendarEvent[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("em_andamento")
+  priority    String   @default("media")
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Int      @default(0)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String?
+  priority    String   @default("media")
+  dueDate     DateTime?
+  estimatedHours Int?
+  progress    Int      @default(0)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Sub-goals
+  subGoals    SubGoal[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model SubGoal {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  goalId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("sub_goals")
+}
+
+model Finance {
+  id          String   @id @default(cuid())
+  type        String   // "income" ou "expense"
+  category    String
+  amount      Float
+  description String?
+  date        DateTime
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("finances")
+}
+
+model FinancialPlanning {
+  id          String   @id @default(cuid())
+  mes         String   // formato: "2026-01"
+  rendaDev    Float
+  rendaContab Float
+  freelas     Float
+  rendaTotal  Float
+  gastos      Float
+  aporte      Float
+  saldoAcum   Float
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([mes, userId])
+  @@map("financial_planning")
+}
+
+model Travel {
+  id          String   @id @default(cuid())
+  semana      Int?
+  inicio      DateTime?
+  fim         DateTime?
+  cidade      String
+  pais        String
+  zona        String?
+  hospedagem  Float?
+  alimentacao Float?
+  transporte  Float?
+  academia    Float?
+  suplementos Float?
+  atividades  Float?
+  subtotal    Float?
+  fatorExtrapolado Float?
+  notas       String?
+  seguroBase  Float?
+  telefoneBase Float?
+  vistosBase  Float?
+  seguroAlto  Float?
+  telefoneAlto Float?
+  vistosAlto  Float?
+  voosLongos  Float?
+  total       Float?
+  subtotalExtrapolado Float?
+  bufferBase  Float?
+  bufferAlto  Float?
+  totalBaseCBuffer Float?
+  totalAltoCBuffer Float?
+  bloco       String?
+  diasSemana  Int?
+  diasSchengen Int?
+  stay28dRecommended Boolean?
+  monthlyRateSimRS Float?
+  monthlySavingsVs4wRS Float?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("travels")
+}
+
+model CareerItem {
+  id          String   @id @default(cuid())
+  type        String   // "course", "certification", "milestone"
+  title       String
+  description String?
+  institution String?
+  cost        Float?
+  startDate   DateTime?
+  endDate     DateTime?
+  completed   Boolean  @default(false)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("career_items")
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  googleEventId String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_events")
+}

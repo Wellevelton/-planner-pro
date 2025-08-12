@@ -26,6 +26,10 @@ const TravelsTab = ({
 
   return (
     <div className="space-y-6">
+      {/* Debug: mostrar dados das viagens */}
+      {console.log('TravelsTab - viagensData:', viagensData)}
+      {console.log('TravelsTab - currentTravels:', currentTravels)}
+      
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-xl">
@@ -70,10 +74,15 @@ const TravelsTab = ({
                 </span>
               </div>
               <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="font-bold text-white text-xl mb-1">{viagem.cidade}</h3>
+                <h3 className="font-bold text-white text-xl mb-1">{viagem.cidade || viagem.Cidade || 'Destino'}</h3>
                 <div className="flex items-center gap-2 text-white text-sm opacity-90">
                   <Calendar size={14} />
-                  <span>{new Date(viagem.inicio).toLocaleDateString('pt-BR')} - {new Date(viagem.fim).toLocaleDateString('pt-BR')}</span>
+                  <span>
+                    {viagem.inicio ? new Date(viagem.inicio).toLocaleDateString('pt-BR') : 
+                     viagem.Início ? new Date(viagem.Início).toLocaleDateString('pt-BR') : 'Data início'} - 
+                    {viagem.fim ? new Date(viagem.fim).toLocaleDateString('pt-BR') : 
+                     viagem.Fim ? new Date(viagem.Fim).toLocaleDateString('pt-BR') : 'Data fim'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -87,7 +96,7 @@ const TravelsTab = ({
                     <DollarSign className="text-green-400" size={14} />
                     <span className="text-gray-400 text-xs">Orçamento</span>
                   </div>
-                  <span className="text-white font-semibold text-lg">R$ {viagem.distotal.toLocaleString()}</span>
+                  <span className="text-white font-semibold text-lg">R$ {(viagem.total || viagem.Total || viagem.distotal || 0).toLocaleString()}</span>
                 </div>
                 
                 <div className="bg-gray-700 rounded-lg p-3">
@@ -95,7 +104,7 @@ const TravelsTab = ({
                     <Hotel className="text-blue-400" size={14} />
                     <span className="text-gray-400 text-xs">Hospedagem</span>
                   </div>
-                  <span className="text-white font-semibold text-lg">R$ {viagem.hospedagem.toLocaleString()}</span>
+                  <span className="text-white font-semibold text-lg">R$ {(viagem.hospedagem || viagem.Hospedagem || 0).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -103,12 +112,12 @@ const TravelsTab = ({
               <div className="bg-gray-700 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-sm font-medium">Gasto atual:</span>
-                  <span className="text-green-400 font-semibold">R$ {(viagem.hospedagem + viagem.tentacao).toLocaleString()}</span>
+                  <span className="text-green-400 font-semibold">R$ {((viagem.hospedagem || viagem.Hospedagem || 0) + (viagem.alimentacao || viagem.Alimentação || 0) + (viagem.transporte || viagem.Transporte || 0)).toLocaleString()}</span>
                 </div>
                 <div className="w-full bg-gray-600 rounded-full h-2">
                   <div 
                     className="bg-green-500 h-2 rounded-full transition-all"
-                    style={{ width: `${Math.min(((viagem.hospedagem + viagem.tentacao) / viagem.distotal) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((((viagem.hospedagem || viagem.Hospedagem || 0) + (viagem.alimentacao || viagem.Alimentação || 0) + (viagem.transporte || viagem.Transporte || 0)) / (viagem.total || viagem.Total || viagem.distotal || 1)) * 100, 100)}%` }}
                   ></div>
                 </div>
               </div>
@@ -121,11 +130,11 @@ const TravelsTab = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="bg-blue-500 bg-opacity-20 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
-                    {viagem.zona}
+                    {viagem.zona || viagem.Zona || 'Região'}
                   </span>
                   <div className="flex items-center gap-1">
                     <Star className="text-yellow-400" size={14} fill="currentColor" />
-                    <span className="text-yellow-400 text-sm font-medium">{viagem.rating}</span>
+                    <span className="text-yellow-400 text-sm font-medium">{viagem.rating || 'N/A'}</span>
                   </div>
                 </div>
               </div>

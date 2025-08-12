@@ -3,12 +3,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
 
 # Environment variables
 .env
@@ -17,38 +11,38 @@ build/
 .env.test.local
 .env.production.local
 
-# IDE and editor files
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Logs
-logs
+logs/
 *.log
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
-*.lcov
 
 # nyc test coverage
-.nyc_output
+.nyc_output/
 
 # Dependency directories
 jspm_packages/
@@ -78,17 +72,15 @@ jspm_packages/
 .cache
 .parcel-cache
 
-# Next.js build output
-.next
+# Vercel
+.vercel
 
-# Nuxt.js build / generate output
-.nuxt
+# Prisma
+prisma/migrations/
+*.db
+*.db-journal
 
-# Storybook build outputs
-.out
-.storybook-out
-
-# Temporary folders
+# Temporary files
 tmp/
 temp/
 
