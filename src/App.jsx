@@ -19,6 +19,8 @@ import FinancesTab from './components/tabs/FinancesTab';
 import CareerTab from './components/tabs/CareerTab';
 import TravelsTab from './components/tabs/TravelsTab';
 import SettingsTab from './components/tabs/SettingsTab';
+import ProfileTab from './components/tabs/ProfileTab';
+import LoginScreen from './components/LoginScreen';
 import EventModal from './components/modals/EventModal';
 import TravelDetailModal from './components/modals/TravelDetailModal';
 import EditTravelModal from './components/modals/EditTravelModal';
@@ -30,6 +32,9 @@ const App = () => {
   // Estado principal
   const [activeTab, setActiveTab] = useState('projects');
   const [activeSubTab, setActiveSubTab] = useState('calendar');
+  const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -65,6 +70,17 @@ const App = () => {
   const resetToInitialData = () => {
     localStorage.clear();
     window.location.reload();
+  };
+
+  // Função para lidar com login
+  const handleLogin = (loginData) => {
+    console.log('Login realizado:', loginData);
+    setIsLoggedIn(true);
+  };
+
+  // Função para logout
+  const handleLogout = () => {
+    setIsLoggedIn(false);
   };
 
   // Funções auxiliares
@@ -241,6 +257,33 @@ const App = () => {
 
   // Tab content renderer
   const renderContent = () => {
+    // Se Perfil ou Configurações estiverem ativos, mostrar eles
+    if (showProfile) {
+      return (
+        <ProfileTab 
+          careerPlanning={careerPlanning}
+          setCareerPlanning={setCareerPlanning}
+          onBack={() => {
+            setShowProfile(false);
+            setShowSettings(false);
+          }}
+        />
+      );
+    }
+    
+    if (showSettings) {
+      return (
+        <SettingsTab 
+          setViagensDataState={setViagensDataState}
+          setFinances={setFinances}
+          onBack={() => {
+            setShowProfile(false);
+            setShowSettings(false);
+          }}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'projects':
         return (
@@ -316,8 +359,7 @@ const App = () => {
             setShowNewTravelModal={setShowNewTravelModal}
           />
         );
-      case 'settings':
-        return <SettingsTab />;
+
       default:
         return (
           <ProjectsTab 
@@ -333,6 +375,11 @@ const App = () => {
     }
   };
 
+  // Se não estiver logado, mostrar tela de login
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   return (
     <div className="h-full bg-gray-900 flex flex-col">
       <Header 
@@ -341,12 +388,17 @@ const App = () => {
         setShowUserMenu={setShowUserMenu}
         showUserMenu={showUserMenu}
         resetToInitialData={resetToInitialData}
+        onLogout={handleLogout}
+        setShowProfile={setShowProfile}
+        setShowSettings={setShowSettings}
       />
       
       <Navigation 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         setActiveSubTab={setActiveSubTab}
+        setShowProfile={setShowProfile}
+        setShowSettings={setShowSettings}
       />
 
       <main className="flex-1 p-6 overflow-auto">
